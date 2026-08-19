@@ -20,11 +20,12 @@
     <button id="zoom-in" title="Aumentar zoom" disabled>+</button>
     <button id="zoom-reset" title="Ajustar à tela" disabled>ajustar</button>
   </div>
-  <label class="edit-toggle">
-    <input type="checkbox" id="edit-mode" disabled>
-    modo edição
-  </label>
+  <select id="edit-mode" class="edit-mode-select" disabled>
+    <option value="edit" selected>✏️ Editar</option>
+    <option value="read">👁️ Ler</option>
+  </select>
   <button id="btn-undo" title="Desfazer (Ctrl+Z)" disabled>↶ Desfazer</button>
+  <button id="btn-redo" title="Refazer (Ctrl+Shift+Z)" disabled>↷ Refazer</button>
   <button id="btn-save" disabled>Salvar</button>
   <span id="status" class="status"></span>
   <button id="btn-present" title="Tela cheia — roda a apresentação de verdade a partir do slide atual" disabled>⛶ Tela cheia</button>

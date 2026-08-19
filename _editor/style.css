@@ -57,7 +57,7 @@ body {
 .toolbar select option { background: #211c17; color: #f2eee8; }
 
 .spacer { flex: 1; }
-.edit-toggle { display: flex; align-items: center; gap: 6px; font-size: 14px; white-space: nowrap; }
+.edit-mode-select { font-weight: 600; }
 
 .zoom-controls {
   display: flex;

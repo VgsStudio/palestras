@@ -26,6 +26,7 @@ const els = {
   zoomReset: document.getElementById('zoom-reset'),
   zoomLevel: document.getElementById('zoom-level'),
   btnUndo: document.getElementById('btn-undo'),
+  btnRedo: document.getElementById('btn-redo'),
   btnPresent: document.getElementById('btn-present'),
   presentOverlay: document.getElementById('present-overlay'),
   presentFrame: document.getElementById('present-frame'),
@@ -41,15 +42,18 @@ let dirty = false;
 let talks = []; // [{label, path, dirHandle}]
 let zoomFactor = 1; // multiplier on top of the auto fit-to-iframe scale
 
-// ---------- Undo ----------
+// ---------- Undo / redo ----------
 // Whole-document snapshots (not a diff/patch log) — simple and robust
 // for up to ~20 steps on decks this size. Each entry is the sourceDoc
-// state from BEFORE one edit, plus which slide it happened on (so undo
-// can jump there) and, for an image file swap, the previous file bytes
-// (swapping keeps the same relative path, so the DOM src doesn't change
-// — only bytes on disk do, which a DOM snapshot alone can't capture).
+// state from BEFORE one edit, plus which slide it happened on (so
+// undo/redo can jump there) and, for an image file swap, the file
+// bytes to restore on disk (swapping keeps the same relative path, so
+// the DOM src doesn't change — only bytes on disk do, which a DOM
+// snapshot alone can't capture). New edits clear the redo stack, same
+// as any normal editor.
 const MAX_UNDO = 20;
 const undoStack = [];
+const redoStack = [];
 
 function pushUndoSnapshot(imageRestore) {
   undoStack.push({
@@ -58,39 +62,68 @@ function pushUndoSnapshot(imageRestore) {
     imageRestore: imageRestore || null,
   });
   if (undoStack.length > MAX_UNDO) undoStack.shift();
-  updateUndoButton();
+  redoStack.length = 0;
+  updateUndoRedoButtons();
 }
 
-function updateUndoButton() {
+function updateUndoRedoButtons() {
   els.btnUndo.disabled = undoStack.length === 0;
   els.btnUndo.textContent = undoStack.length > 0 ? `↶ Desfazer (${undoStack.length})` : '↶ Desfazer';
+  els.btnRedo.disabled = redoStack.length === 0;
+  els.btnRedo.textContent = redoStack.length > 0 ? `↷ Refazer (${redoStack.length})` : '↷ Refazer';
 }
 
-async function undo() {
-  const entry = undoStack.pop();
-  updateUndoButton();
-  if (!entry) {
-    setStatus('nada pra desfazer', '');
-    return;
-  }
+// Shared by undo() and redo(): pop `fromStack`, stash the state we're
+// about to overwrite onto `toStack` (its inverse), then apply the popped
+// entry. imageRestore bytes are read fresh from disk right before being
+// overwritten, since that's the only place the "current" bytes live.
+async function timeTravel(fromStack, toStack) {
+  const entry = fromStack.pop();
+  if (!entry) return false;
+
+  let inverseImageRestore = null;
   if (entry.imageRestore) {
+    try {
+      inverseImageRestore = { relPath: entry.imageRestore.relPath, bytes: await readFileAt(talkHandle, entry.imageRestore.relPath) };
+    } catch (err) {
+      console.warn('could not snapshot current image before time-travel', err);
+    }
     try {
       await writeFileAt(talkHandle, entry.imageRestore.relPath, entry.imageRestore.bytes);
     } catch (err) {
-      console.warn('could not restore previous image bytes', err);
+      console.warn('could not restore image bytes', err);
     }
   }
+
+  toStack.push({
+    slideIndex: currentSlide,
+    html: sourceDoc.documentElement.outerHTML,
+    imageRestore: inverseImageRestore,
+  });
+  if (toStack.length > MAX_UNDO) toStack.shift();
+
   sourceDoc = new DOMParser().parseFromString(entry.html, 'text/html');
   await renderPreviewFromSource(entry.slideIndex);
   markDirty();
-  setStatus(`desfeito — ${undoStack.length} passo(s) restante(s)`, 'ok');
+  updateUndoRedoButtons();
+  return true;
+}
+
+async function undo() {
+  const did = await timeTravel(undoStack, redoStack);
+  setStatus(did ? `desfeito — ${undoStack.length} passo(s) restante(s)` : 'nada pra desfazer', did ? 'ok' : '');
+}
+
+async function redo() {
+  const did = await timeTravel(redoStack, undoStack);
+  setStatus(did ? `refeito — ${redoStack.length} passo(s) restante(s)` : 'nada pra refazer', did ? 'ok' : '');
 }
 
 function handleUndoKeydown(e) {
-  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
-    e.preventDefault();
-    undo();
-  }
+  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return;
+  e.preventDefault();
+  if (e.shiftKey) redo();
+  else undo();
 }
 
 function computeFitScale() {
@@ -105,6 +138,10 @@ function applyZoom() {
   const scale = computeFitScale() * zoomFactor;
   doc.documentElement.style.setProperty('--slide-scale', scale);
   els.zoomLevel.textContent = `${Math.round(zoomFactor * 100)}%`;
+}
+
+function isEditMode() {
+  return els.editMode.value === 'edit';
 }
 
 function setStatus(text, kind) {
@@ -231,6 +268,7 @@ function sanitizeInline(html) {
 
 async function openTalk(entry) {
   talkHandle = entry.dirHandle;
+  saveLastTalkPath(entry.path);
   setStatus('carregando…', '');
 
   const fileHandle = await talkHandle.getFileHandle('index.html');
@@ -242,17 +280,16 @@ async function openTalk(entry) {
   sourceDoc = new DOMParser().parseFromString(text, 'text/html');
 
   undoStack.length = 0;
-  updateUndoButton();
-
-  await renderPreviewFromSource(0);
+  redoStack.length = 0;
+  updateUndoRedoButtons();
 
   zoomFactor = 1;
-  applyZoom();
+  await renderPreviewFromSource(0);
 
   dirty = false;
   els.btnSave.disabled = true;
   els.editMode.disabled = false;
-  els.editMode.checked = true; // start ready to edit — no extra click needed
+  els.editMode.value = 'edit'; // start ready to edit — no extra click needed
   els.zoomOut.disabled = false;
   els.zoomIn.disabled = false;
   els.zoomReset.disabled = false;
@@ -319,6 +356,7 @@ async function renderPreviewFromSource(targetSlideIndex) {
   buildSlidePairs();
   renderSlideNav();
   goToSlide(targetSlideIndex);
+  applyZoom(); // reapply current zoom — a fresh iframe load has no --slide-scale set yet
 }
 
 // ---------- Present mode ----------
@@ -421,7 +459,7 @@ function goToSlide(i) {
 function wireCurrentSlideFields() {
   const pair = slidePairs[currentSlide];
   if (!pair) return;
-  els.preview.contentDocument.documentElement.classList.toggle('__editor-edit-mode', els.editMode.checked);
+  els.preview.contentDocument.documentElement.classList.toggle('__editor-edit-mode', isEditMode());
   const sourceFields = collectFields(pair.sourceSlide);
   const previewFields = collectFields(pair.previewSlide);
 
@@ -429,7 +467,7 @@ function wireCurrentSlideFields() {
     const sourceEl = sourceFields.texts[i];
     if (!sourceEl) return;
     previewEl.dataset.editorEditable = 'true';
-    previewEl.contentEditable = els.editMode.checked ? 'true' : 'false';
+    previewEl.contentEditable = isEditMode() ? 'true' : 'false';
     previewEl.onblur = () => {
       const clean = sanitizeInline(previewEl.innerHTML);
       if (clean !== previewEl.innerHTML) previewEl.innerHTML = clean;
@@ -454,7 +492,7 @@ function wireCurrentSlideFields() {
     if (!sourceSlot) return;
     previewSlot.dataset.editorEditable = 'true';
     previewSlot.onclick = () => {
-      if (!els.editMode.checked) return;
+      if (!isEditMode()) return;
       fillEmptySlot(previewSlot, sourceSlot);
     };
     wireDropTarget(previewSlot, (file) => fillEmptySlot(previewSlot, sourceSlot, file));
@@ -465,19 +503,19 @@ function wireCurrentSlideFields() {
 // separate from the mouse-drag used for crop repositioning above.
 function wireDropTarget(el, onFile) {
   el.addEventListener('dragenter', (e) => {
-    if (!els.editMode.checked) return;
+    if (!isEditMode()) return;
     e.preventDefault();
     el.classList.add('editor-drag-over');
   });
   el.addEventListener('dragover', (e) => {
-    if (!els.editMode.checked) return;
+    if (!isEditMode()) return;
     e.preventDefault(); // required for drop to fire
   });
   el.addEventListener('dragleave', () => {
     el.classList.remove('editor-drag-over');
   });
   el.addEventListener('drop', (e) => {
-    if (!els.editMode.checked) return;
+    if (!isEditMode()) return;
     e.preventDefault();
     e.stopPropagation();
     el.classList.remove('editor-drag-over');
@@ -519,12 +557,12 @@ function wireImageInteractions(previewImg, sourceImg) {
       markDirty();
     } else {
       undoStack.pop(); // nothing actually changed — drop the tentative snapshot
-      updateUndoButton();
+      updateUndoRedoButtons();
     }
   }
 
   previewImg.onmousedown = (e) => {
-    if (!els.editMode.checked) return;
+    if (!isEditMode()) return;
     moved = false;
     dragStart = { x: e.clientX, y: e.clientY };
     startPos = parseObjectPosition(previewImg.style.objectPosition);
@@ -537,7 +575,7 @@ function wireImageInteractions(previewImg, sourceImg) {
   };
 
   previewImg.onclick = async () => {
-    if (!els.editMode.checked || moved) return;
+    if (!isEditMode() || moved) return;
     await swapImage(previewImg, sourceImg);
   };
 }
@@ -675,7 +713,21 @@ async function loadRootHandle() {
 
 // ---------- Wiring top-level UI ----------
 
-async function refreshTalkList() {
+const LAST_TALK_KEY = 'palestras-editor:lastTalk';
+function saveLastTalkPath(path) {
+  try {
+    localStorage.setItem(LAST_TALK_KEY, path);
+  } catch {}
+}
+function loadLastTalkPath() {
+  try {
+    return localStorage.getItem(LAST_TALK_KEY);
+  } catch {
+    return null;
+  }
+}
+
+async function refreshTalkList(autoOpenLast) {
   setStatus('procurando palestras…', '');
   talks = await findTalks(rootHandle);
   els.talkPicker.innerHTML = '';
@@ -696,6 +748,15 @@ async function refreshTalkList() {
   });
   els.talkPicker.disabled = false;
   setStatus(`${talks.length} palestra(s) encontrada(s)`, 'ok');
+
+  if (autoOpenLast) {
+    const lastPath = loadLastTalkPath();
+    const idx = talks.findIndex((t) => t.path === lastPath);
+    if (idx >= 0) {
+      els.talkPicker.value = String(idx);
+      await openTalk(talks[idx]);
+    }
+  }
 }
 
 let pendingRestore = null; // set by tryRestoreRootHandle() when a saved folder needs a fresh gesture
@@ -714,7 +775,7 @@ els.btnOpen.addEventListener('click', async () => {
   }
   await saveRootHandle(rootHandle);
   els.btnOpen.textContent = 'Trocar pasta…';
-  await refreshTalkList();
+  await refreshTalkList(true);
 });
 
 els.talkPicker.addEventListener('change', () => {
@@ -755,6 +816,7 @@ els.zoomReset.addEventListener('click', () => {
 });
 
 els.btnUndo.addEventListener('click', undo);
+els.btnRedo.addEventListener('click', redo);
 window.addEventListener('keydown', handleUndoKeydown);
 
 els.btnPresent.addEventListener('click', enterPresentMode);
@@ -804,7 +866,7 @@ async function tryRestoreRootHandle() {
   if (perm === 'granted') {
     rootHandle = handle;
     els.btnOpen.textContent = 'Trocar pasta…';
-    await refreshTalkList();
+    await refreshTalkList(true);
     return;
   }
 
@@ -825,6 +887,6 @@ async function tryRestoreRootHandle() {
     }
     rootHandle = handle;
     els.btnOpen.textContent = 'Trocar pasta…';
-    await refreshTalkList();
+    await refreshTalkList(true);
   };
 }
