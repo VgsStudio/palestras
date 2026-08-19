@@ -130,6 +130,20 @@ pra checar isso automaticamente antes de publicar:
    `main-*.js"` / `importmap` no fim do arquivo — são o runtime Angular do
    próprio ClickUp, não servem pra nada aqui (o motor de slides já é
    autocontido).
+5. **Favicon**: troca os dois `<link rel="icon" ... favicon-*.png>` que
+   apontam pro CDN do ClickUp pelo favicon do próprio vsoller.com.br —
+   é um único `<link rel="icon" href="data:image/svg+xml,...">` com o
+   emoji 🤓, copia direto de `portfolio/web/index.html`.
+6. **Crédito "💜 by ClickUp Brain"**: aparece em dois lugares — um
+   `<div class="chassis-credit">` estático já no HTML (remove o `<div>`
+   inteiro) e a função `_ensureCredit()` no `<script>` embutido, que
+   recria a mesma coisa se o `<div>` não existir (adiciona um `return
+   null;` logo no início da função, antes dela criar o elemento).
+
+Regra geral: **qualquer palestra que vier de uma ferramenta externa
+(ClickUp Brain ou outra) precisa dessa limpeza de marca d'água/favicon
+antes de publicar** — não é só estética, é sempre assumir que "gerado
+por X" não deveria aparecer no seu próprio site.
 
 **Sobre imagens:**
 - Prioridade: foto real já existente (do portfólio, do LinkedIn, de
