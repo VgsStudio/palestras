@@ -182,6 +182,13 @@ por X" não deveria aparecer no seu próprio site.
 **Sobre infraestrutura:**
 - `s3deploy.BucketDeployment` do CDK **não retém arquivos por padrão** ao
   remover o construct — isso já causou um apagão acidental de
-  `materiais/` inteiro numa migração. Qualquer mudança em infra que toque
-  bucket/CloudFront merece checagem de "o que acontece com o conteúdo já
-  publicado" antes de aplicar, não depois.
+  `materiais/` inteiro numa migração, e aconteceu de novo (mesma causa,
+  gatilho diferente: qualquer redeploy do `DeploySite` do portfólio faz
+  prune de tudo que não está em `web/dist`, incluindo `materiais/`, que é
+  sincronizado por fora). Corrigido de vez com `exclude: ['materiais/*']`
+  no `BucketDeployment` de `portfolio/infra/lib/site-stack.ts` — o
+  `exclude` do CDK protege do prune também, não só do upload. Qualquer
+  mudança em infra que toque bucket/CloudFront ainda merece checagem de
+  "o que acontece com o conteúdo já publicado" antes de aplicar, mas essa
+  categoria específica de acidente agora tem proteção em código, não só
+  em disciplina.
