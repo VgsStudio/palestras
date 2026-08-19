@@ -103,8 +103,7 @@ async function timeTravel(fromStack, toStack) {
   });
   if (toStack.length > MAX_UNDO) toStack.shift();
 
-  sourceDoc = new DOMParser().parseFromString(entry.html, 'text/html');
-  await renderPreviewFromSource(entry.slideIndex);
+  await applySnapshotDiff(entry.html, entry.slideIndex);
   markDirty();
   updateUndoRedoButtons();
   return true;
@@ -308,6 +307,110 @@ async function openTalk(entry) {
   setStatus('', '');
 }
 
+// Fetches every local <img> in parallel instead of one at a time — with
+// ~20 images per deck, sequential awaits were most of what made opening
+// a talk (and, before applySnapshotDiff existed, every undo/redo) feel
+// slow. Tags each element with its real relPath in a data attribute,
+// since the src itself becomes a blob: URL right after this runs.
+async function hydrateImages(doc) {
+  const imgs = Array.from(doc.querySelectorAll('img')).filter((img) => {
+    const src = img.getAttribute('src') || '';
+    return src && !/^https?:/i.test(src);
+  });
+  await Promise.all(
+    imgs.map(async (img) => {
+      const src = img.getAttribute('src');
+      try {
+        const imgFile = await readFileAt(talkHandle, src);
+        img.dataset.srcPath = src;
+        img.setAttribute('src', URL.createObjectURL(imgFile));
+      } catch (err) {
+        console.warn('could not load image', src, err);
+      }
+    }),
+  );
+}
+
+// Undo/redo used to call renderPreviewFromSource() — a full iframe
+// reload that re-fetched every image in the deck just to revert one
+// field. This patches only what actually differs between the current
+// live preview and the target snapshot, directly in the existing (never
+// reloaded) iframe document — so a text undo touches one node, not ~20
+// images and a full navigation.
+async function applySnapshotDiff(newHtmlString, targetSlideIndex) {
+  const newSourceDoc = new DOMParser().parseFromString(newHtmlString, 'text/html');
+  const newSlides = Array.from(newSourceDoc.querySelectorAll('.slide-viewport'));
+  const previewDoc = els.preview.contentDocument;
+  const previewSlides = Array.from(previewDoc.querySelectorAll('.slide-viewport'));
+
+  if (newSlides.length !== previewSlides.length) {
+    // Shouldn't happen (this editor never adds/removes slides) — fall
+    // back to the safe full rebuild rather than risk a broken pairing.
+    sourceDoc = newSourceDoc;
+    await renderPreviewFromSource(targetSlideIndex);
+    return;
+  }
+
+  for (let i = 0; i < newSlides.length; i++) {
+    const newFields = collectFields(newSlides[i]);
+    const previewFields = collectFields(previewSlides[i]);
+
+    const structurallyChanged =
+      newFields.images.length !== previewFields.images.length ||
+      newFields.emptySlots.length !== previewFields.emptySlots.length;
+
+    if (structurallyChanged) {
+      // An image was added to/removed from an empty slot — rebuild just
+      // this one slide's subtree rather than the whole document.
+      const container = document.createElement('div');
+      container.innerHTML = newSlides[i].innerHTML;
+      await hydrateImages(container);
+      previewSlides[i].innerHTML = container.innerHTML;
+      continue;
+    }
+
+    newFields.texts.forEach((newEl, idx) => {
+      const previewEl = previewFields.texts[idx];
+      if (previewEl && previewEl.innerHTML !== newEl.innerHTML) {
+        previewEl.innerHTML = newEl.innerHTML;
+      }
+    });
+
+    for (const [idx, newImg] of newFields.images.entries()) {
+      const previewImg = previewFields.images[idx];
+      if (!previewImg) continue;
+      const newPos = newImg.style.objectPosition || '';
+      if (previewImg.style.objectPosition !== newPos) previewImg.style.objectPosition = newPos;
+
+      const newSrc = newImg.getAttribute('src') || '';
+      const currentSrcPath = previewImg.dataset.srcPath || previewImg.getAttribute('src') || '';
+      if (currentSrcPath === newSrc) continue;
+      if (/^https?:/i.test(newSrc)) {
+        previewImg.removeAttribute('data-src-path');
+        previewImg.src = newSrc;
+        continue;
+      }
+      try {
+        const imgFile = await readFileAt(talkHandle, newSrc);
+        previewImg.dataset.srcPath = newSrc;
+        previewImg.src = URL.createObjectURL(imgFile);
+      } catch (err) {
+        console.warn('could not load image for undo/redo', newSrc, err);
+      }
+    }
+  }
+
+  sourceDoc = newSourceDoc;
+  slidePairs = newSlides.map((sourceSlide, i) => {
+    const previewSlide = previewSlides[i];
+    const heading = sourceSlide.querySelector('h1, h2, .eyebrow');
+    const label = heading ? heading.textContent.trim().slice(0, 40) : `slide ${i + 1}`;
+    return { sourceSlide, previewSlide, label };
+  });
+  renderSlideNav();
+  goToSlide(targetSlideIndex);
+}
+
 // Rebuilds the edit-mode iframe from whatever sourceDoc currently is —
 // used both for the initial open and for jumping back after an undo.
 // Scripts stripped, reveals forced visible, local images -> blob URLs.
@@ -339,16 +442,7 @@ async function renderPreviewFromSource(targetSlideIndex) {
   `;
   previewDoc.head.appendChild(overrideStyle);
 
-  for (const img of Array.from(previewDoc.querySelectorAll('img'))) {
-    const src = img.getAttribute('src') || '';
-    if (!src || /^https?:/i.test(src)) continue;
-    try {
-      const imgFile = await readFileAt(talkHandle, src);
-      img.setAttribute('src', URL.createObjectURL(imgFile));
-    } catch (err) {
-      console.warn('could not load image', src, err);
-    }
-  }
+  await hydrateImages(previewDoc);
 
   const blob = new Blob([docPrefix + previewDoc.documentElement.outerHTML], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
@@ -381,16 +475,7 @@ async function enterPresentMode() {
   if (!sourceDoc || !talkHandle || !slidePairs[currentSlide]) return;
 
   const presentDoc = new DOMParser().parseFromString(sourceDoc.documentElement.outerHTML, 'text/html');
-  for (const img of Array.from(presentDoc.querySelectorAll('img'))) {
-    const src = img.getAttribute('src') || '';
-    if (!src || /^https?:/i.test(src)) continue;
-    try {
-      const imgFile = await readFileAt(talkHandle, src);
-      img.setAttribute('src', URL.createObjectURL(imgFile));
-    } catch (err) {
-      console.warn('could not load image for present mode', src, err);
-    }
-  }
+  await hydrateImages(presentDoc);
 
   const targetId = slidePairs[currentSlide].sourceSlide.id || `slide-${currentSlide + 1}`;
   const blob = new Blob([docPrefix + presentDoc.documentElement.outerHTML], { type: 'text/html' });
@@ -622,6 +707,7 @@ async function swapImage(previewImg, sourceImg, droppedFile) {
   }
   pushUndoSnapshot(previousBytes ? { relPath, bytes: previousBytes } : null);
   await writeFileAt(talkHandle, relPath, file);
+  previewImg.dataset.srcPath = relPath;
   previewImg.src = URL.createObjectURL(file);
   markDirty();
   setStatus(`imagem "${relPath}" atualizada`, 'ok');
@@ -648,6 +734,7 @@ async function fillEmptySlot(previewSlot, sourceSlot, droppedFile) {
   pushUndoSnapshot(); // slot was empty before — undo just needs the DOM snapshot back
   for (const [slot, doc] of [[sourceSlot, sourceDoc], [previewSlot, els.preview.contentDocument]]) {
     const img = doc.createElement('img');
+    if (slot === previewSlot) img.dataset.srcPath = relPath;
     img.setAttribute('src', slot === sourceSlot ? relPath : URL.createObjectURL(file));
     img.setAttribute('alt', '');
     slot.querySelectorAll('.hint').forEach((h) => h.remove());
