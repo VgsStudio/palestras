@@ -1,0 +1,6 @@
+{
+  "title": "[TESTE] Validação do pipeline de publicação",
+  "date": "2026-08-19",
+  "description": "Palestra dummy só pra confirmar que o fluxo novo (push aqui → talks.json → S3 → home) funciona ponta a ponta. Pode apagar quando quiser.",
+  "type": "html"
+}
