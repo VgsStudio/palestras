@@ -1305,6 +1305,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   .split-divider { width: 1px; height: 420px; align-self: center; background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--ink) 22%, transparent) 15%, color-mix(in srgb, var(--ink) 22%, transparent) 85%, transparent); }
   .logo-slot { width: 360px; height: 132px; background: #fff; border-radius: 10px; }
   .logo-slot img { object-fit: contain; padding: 16px; }
+  .logo-slot.logo-corner { position: absolute; top: 10px; right: 0; width: 460px; height: 166px; border-radius: 14px; }
   .certs-row { display: flex; flex-direction: column; gap: 12px; }
   .certs-grid { display: flex; flex-wrap: wrap; gap: 14px; }
   .certs-grid .cert-badge { width: 104px; height: 104px; object-fit: contain; }
@@ -1417,10 +1418,10 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
         </div>
         <span class="certs-note">+ Qiskit Advocate (IBM)</span>
       </div>
-      <div class="slot logo-slot reveal d7" style="opacity: 0; transform: translateY(28px);">
-        <img src="images/maua-logo.svg" alt="Instituto Mauá de Tecnologia">
-      </div>
     </div>
+  </div>
+  <div class="slot logo-slot logo-corner reveal d7" style="opacity: 0; transform: translateY(28px);">
+    <img src="images/maua-logo.svg" alt="Instituto Mauá de Tecnologia">
   </div>
   <span class="note">e eu sentei nessa mesma cadeira aqui, alguns anos atrás</span>
 </section></div></div>
