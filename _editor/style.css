@@ -10,20 +10,25 @@ body {
   flex-direction: column;
   gap: 14px;
   padding: 14px;
+  /* Vibrant, saturated color "orbs" behind the glass — a washed-out
+     background makes frosted panels read as flat, not glassy. Warm
+     palette matches the decks themselves (orange/red/gold on ink). */
   background:
-    radial-gradient(1100px 700px at 8% -10%, rgba(255, 106, 33, 0.16), transparent 60%),
-    radial-gradient(900px 620px at 100% 110%, rgba(196, 52, 42, 0.14), transparent 60%),
-    #0d0b08;
+    radial-gradient(1200px 900px at 0% 0%, rgba(255, 106, 33, 0.55), transparent 55%),
+    radial-gradient(1000px 800px at 100% 15%, rgba(255, 200, 60, 0.30), transparent 50%),
+    radial-gradient(1100px 900px at 85% 100%, rgba(196, 52, 42, 0.5), transparent 55%),
+    radial-gradient(800px 700px at 10% 100%, rgba(122, 46, 92, 0.32), transparent 55%),
+    #0a0806;
 }
 
 /* ---------- glass panel base ---------- */
 .toolbar, .slide-nav, .preview-wrap {
-  background: rgba(33, 28, 23, 0.5);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(20, 16, 13, 0.42);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.09);
 }
 
 .toolbar {
@@ -73,8 +78,10 @@ body {
   border-color: transparent;
   color: #fff;
   font-weight: 600;
+  box-shadow: 0 4px 18px rgba(255, 106, 33, 0.35);
 }
-#btn-save:hover:not(:disabled) { filter: brightness(1.08); }
+#btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 4px 22px rgba(255, 106, 33, 0.5); }
+#btn-save:disabled { box-shadow: none; }
 
 .status { font-size: 13px; color: #a99d8c; min-width: 180px; }
 .status.error { color: #ff8a8a; }
