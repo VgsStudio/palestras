@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Editor de palestras</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A4%93</text></svg>">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,10 +21,30 @@
     <button id="zoom-in" title="Aumentar zoom" disabled>+</button>
     <button id="zoom-reset" title="Ajustar à tela" disabled>ajustar</button>
   </div>
-  <select id="edit-mode" class="edit-mode-select" disabled>
-    <option value="edit" selected>✏️ Editar</option>
-    <option value="read">👁️ Ler</option>
-  </select>
+  <div class="mode-menu">
+    <button id="mode-trigger" class="mode-trigger" title="Modo edição/leitura" aria-haspopup="true" disabled>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 20h9"></path>
+        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+      </svg>
+    </button>
+    <div id="mode-options" class="mode-options" hidden>
+      <button type="button" class="mode-option active" data-mode="edit">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+        </svg>
+        Editar
+      </button>
+      <button type="button" class="mode-option" data-mode="read">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        Ler
+      </button>
+    </div>
+  </div>
   <button id="btn-undo" title="Desfazer (Ctrl+Z)" disabled>↶ Desfazer</button>
   <button id="btn-redo" title="Refazer (Ctrl+Shift+Z)" disabled>↷ Refazer</button>
   <button id="btn-save" disabled>Salvar</button>

@@ -16,7 +16,8 @@ const INLINE_TAGS = new Set(['EM', 'STRONG', 'B', 'I', 'BR']);
 const els = {
   btnOpen: document.getElementById('btn-open'),
   talkPicker: document.getElementById('talk-picker'),
-  editMode: document.getElementById('edit-mode'),
+  modeTrigger: document.getElementById('mode-trigger'),
+  modeOptions: document.getElementById('mode-options'),
   btnSave: document.getElementById('btn-save'),
   status: document.getElementById('status'),
   slideNav: document.getElementById('slide-nav'),
@@ -140,8 +141,17 @@ function applyZoom() {
   els.zoomLevel.textContent = `${Math.round(zoomFactor * 100)}%`;
 }
 
+let editModeValue = 'edit';
+
 function isEditMode() {
-  return els.editMode.value === 'edit';
+  return editModeValue === 'edit';
+}
+
+function setMode(mode) {
+  editModeValue = mode;
+  els.modeOptions.querySelectorAll('.mode-option').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+  els.modeOptions.hidden = true;
+  if (slidePairs[currentSlide]) wireCurrentSlideFields();
 }
 
 function setStatus(text, kind) {
@@ -288,13 +298,14 @@ async function openTalk(entry) {
 
   dirty = false;
   els.btnSave.disabled = true;
-  els.editMode.disabled = false;
-  els.editMode.value = 'edit'; // start ready to edit — no extra click needed
+  els.modeTrigger.disabled = false;
+  editModeValue = 'edit'; // start ready to edit — no extra click needed
+  els.modeOptions.querySelectorAll('.mode-option').forEach((b) => b.classList.toggle('active', b.dataset.mode === 'edit'));
   els.zoomOut.disabled = false;
   els.zoomIn.disabled = false;
   els.zoomReset.disabled = false;
   els.btnPresent.disabled = false;
-  setStatus(`${entry.label} — ${slidePairs.length} slide(s)`, 'ok');
+  setStatus('', '');
 }
 
 // Rebuilds the edit-mode iframe from whatever sourceDoc currently is —
@@ -798,8 +809,15 @@ els.slideNav.addEventListener('keydown', (e) => {
   els.slideNav.children[next]?.focus();
 });
 
-els.editMode.addEventListener('change', () => {
-  wireCurrentSlideFields();
+els.modeTrigger.addEventListener('click', () => {
+  if (els.modeTrigger.disabled) return;
+  els.modeOptions.hidden = !els.modeOptions.hidden;
+});
+els.modeOptions.querySelectorAll('.mode-option').forEach((btn) => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
+});
+document.addEventListener('click', (e) => {
+  if (!els.modeOptions.hidden && !e.target.closest('.mode-menu')) els.modeOptions.hidden = true;
 });
 
 els.zoomIn.addEventListener('click', () => {
