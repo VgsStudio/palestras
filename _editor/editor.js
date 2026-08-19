@@ -21,6 +21,10 @@ const els = {
   status: document.getElementById('status'),
   slideNav: document.getElementById('slide-nav'),
   preview: document.getElementById('preview'),
+  zoomOut: document.getElementById('zoom-out'),
+  zoomIn: document.getElementById('zoom-in'),
+  zoomReset: document.getElementById('zoom-reset'),
+  zoomLevel: document.getElementById('zoom-level'),
 };
 
 let rootHandle = null;
@@ -31,6 +35,21 @@ let slidePairs = []; // [{sourceSlide, previewSlide, label}]
 let currentSlide = 0;
 let dirty = false;
 let talks = []; // [{label, path, dirHandle}]
+let zoomFactor = 1; // multiplier on top of the auto fit-to-iframe scale
+
+function computeFitScale() {
+  const win = els.preview.contentWindow;
+  if (!win) return 1;
+  return Math.min(win.innerWidth / 1920, win.innerHeight / 1080);
+}
+
+function applyZoom() {
+  const doc = els.preview.contentDocument;
+  if (!doc) return;
+  const scale = computeFitScale() * zoomFactor;
+  doc.documentElement.style.setProperty('--slide-scale', scale);
+  els.zoomLevel.textContent = `${Math.round(zoomFactor * 100)}%`;
+}
 
 function setStatus(text, kind) {
   els.status.textContent = text;
@@ -179,8 +198,12 @@ async function openTalk(entry) {
     .slide-viewport{display:none !important;}
     .slide-viewport.__editor-active{display:block !important;}
     .nav-dots,.keyboard-hint,.chassis-credit,.chassis-cursor{display:none !important;}
-    html.__editor-edit-mode [data-editor-editable="true"]:hover{outline:2px dashed #ff6a21; outline-offset:2px; cursor:pointer;}
-    html.__editor-edit-mode [data-editor-editable="true"][contenteditable="true"]:focus{outline:2px solid #ff6a21; outline-offset:2px; cursor:text;}
+    /* o deck original esconde o cursor real e desenha um falso via JS
+       (chassis-cursor) — como a gente nunca roda esse JS aqui, sem isto
+       o mouse fica invisível dentro do preview. */
+    body.chassis-cursor-active, body.chassis-cursor-active *{cursor:auto !important;}
+    html.__editor-edit-mode [data-editor-editable="true"]:hover{outline:2px dashed #ff6a21; outline-offset:2px; cursor:pointer !important;}
+    html.__editor-edit-mode [data-editor-editable="true"][contenteditable="true"]:focus{outline:2px solid #ff6a21; outline-offset:2px; cursor:text !important;}
   `;
   previewDoc.head.appendChild(overrideStyle);
 
@@ -207,10 +230,16 @@ async function openTalk(entry) {
   currentSlide = 0;
   goToSlide(0);
 
+  zoomFactor = 1;
+  applyZoom();
+
   dirty = false;
   els.btnSave.disabled = true;
   els.editMode.disabled = false;
   els.editMode.checked = false;
+  els.zoomOut.disabled = false;
+  els.zoomIn.disabled = false;
+  els.zoomReset.disabled = false;
   setStatus(`${entry.label} — ${slidePairs.length} slide(s)`, 'ok');
 }
 
@@ -446,6 +475,19 @@ els.talkPicker.addEventListener('change', () => {
 
 els.editMode.addEventListener('change', () => {
   wireCurrentSlideFields();
+});
+
+els.zoomIn.addEventListener('click', () => {
+  zoomFactor = Math.min(3, zoomFactor + 0.15);
+  applyZoom();
+});
+els.zoomOut.addEventListener('click', () => {
+  zoomFactor = Math.max(0.3, zoomFactor - 0.15);
+  applyZoom();
+});
+els.zoomReset.addEventListener('click', () => {
+  zoomFactor = 1;
+  applyZoom();
 });
 
 els.btnSave.addEventListener('click', saveTalk);
