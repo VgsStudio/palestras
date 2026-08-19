@@ -345,8 +345,12 @@ async function enterPresentMode() {
 
   const targetId = slidePairs[currentSlide].sourceSlide.id || `slide-${currentSlide + 1}`;
   const blob = new Blob([docPrefix + presentDoc.documentElement.outerHTML], { type: 'text/html' });
-  els.presentFrame.src = `${URL.createObjectURL(blob)}#${targetId}`;
   els.presentOverlay.hidden = false;
+
+  await new Promise((resolve) => {
+    els.presentFrame.onload = resolve;
+    els.presentFrame.src = `${URL.createObjectURL(blob)}#${targetId}`;
+  });
 
   try {
     await els.presentOverlay.requestFullscreen();
@@ -354,6 +358,17 @@ async function enterPresentMode() {
     console.warn('fullscreen request failed', err);
     setStatus('não deu pra entrar em tela cheia, mas a apresentação abriu — F11 no navegador também funciona', '');
   }
+
+  // The deck's own chassis.js computes its --slide-scale from
+  // window.innerWidth/innerHeight the instant it loads — which is
+  // whatever size the overlay had BEFORE fullscreen actually finished
+  // taking effect, since requestFullscreen() resolves slightly ahead of
+  // the real layout change. Nudging its own resize handler after a
+  // couple of frames makes it recompute against the real fullscreen
+  // size, without us reimplementing its scaling math here.
+  const nudge = () => els.presentFrame.contentWindow?.dispatchEvent(new Event('resize'));
+  requestAnimationFrame(() => requestAnimationFrame(nudge));
+  setTimeout(nudge, 300);
 }
 
 function exitPresentMode() {
