@@ -24,8 +24,10 @@
     <input type="checkbox" id="edit-mode" disabled>
     modo edição
   </label>
+  <button id="btn-undo" title="Desfazer (Ctrl+Z)" disabled>↶ Desfazer</button>
   <button id="btn-save" disabled>Salvar</button>
   <span id="status" class="status"></span>
+  <button id="btn-present" title="Tela cheia — roda a apresentação de verdade a partir do slide atual" disabled>⛶ Tela cheia</button>
 </header>
 
 <div class="body">
@@ -33,6 +35,10 @@
   <main class="preview-wrap">
     <iframe id="preview" title="Preview do slide"></iframe>
   </main>
+</div>
+
+<div id="present-overlay" class="present-overlay" hidden>
+  <iframe id="present-frame" title="Apresentação em tela cheia"></iframe>
 </div>
 
 <script type="module" src="editor.js"></script>

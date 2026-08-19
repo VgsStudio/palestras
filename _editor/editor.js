@@ -25,6 +25,10 @@ const els = {
   zoomIn: document.getElementById('zoom-in'),
   zoomReset: document.getElementById('zoom-reset'),
   zoomLevel: document.getElementById('zoom-level'),
+  btnUndo: document.getElementById('btn-undo'),
+  btnPresent: document.getElementById('btn-present'),
+  presentOverlay: document.getElementById('present-overlay'),
+  presentFrame: document.getElementById('present-frame'),
 };
 
 let rootHandle = null;
@@ -36,6 +40,58 @@ let currentSlide = 0;
 let dirty = false;
 let talks = []; // [{label, path, dirHandle}]
 let zoomFactor = 1; // multiplier on top of the auto fit-to-iframe scale
+
+// ---------- Undo ----------
+// Whole-document snapshots (not a diff/patch log) — simple and robust
+// for up to ~20 steps on decks this size. Each entry is the sourceDoc
+// state from BEFORE one edit, plus which slide it happened on (so undo
+// can jump there) and, for an image file swap, the previous file bytes
+// (swapping keeps the same relative path, so the DOM src doesn't change
+// — only bytes on disk do, which a DOM snapshot alone can't capture).
+const MAX_UNDO = 20;
+const undoStack = [];
+
+function pushUndoSnapshot(imageRestore) {
+  undoStack.push({
+    slideIndex: currentSlide,
+    html: sourceDoc.documentElement.outerHTML,
+    imageRestore: imageRestore || null,
+  });
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  updateUndoButton();
+}
+
+function updateUndoButton() {
+  els.btnUndo.disabled = undoStack.length === 0;
+  els.btnUndo.textContent = undoStack.length > 0 ? `↶ Desfazer (${undoStack.length})` : '↶ Desfazer';
+}
+
+async function undo() {
+  const entry = undoStack.pop();
+  updateUndoButton();
+  if (!entry) {
+    setStatus('nada pra desfazer', '');
+    return;
+  }
+  if (entry.imageRestore) {
+    try {
+      await writeFileAt(talkHandle, entry.imageRestore.relPath, entry.imageRestore.bytes);
+    } catch (err) {
+      console.warn('could not restore previous image bytes', err);
+    }
+  }
+  sourceDoc = new DOMParser().parseFromString(entry.html, 'text/html');
+  await renderPreviewFromSource(entry.slideIndex);
+  markDirty();
+  setStatus(`desfeito — ${undoStack.length} passo(s) restante(s)`, 'ok');
+}
+
+function handleUndoKeydown(e) {
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+    e.preventDefault();
+    undo();
+  }
+}
 
 function computeFitScale() {
   const win = els.preview.contentWindow;
@@ -183,11 +239,33 @@ async function openTalk(entry) {
 
   const htmlStart = text.search(/<html[\s>]/i);
   docPrefix = htmlStart > 0 ? text.slice(0, htmlStart) : '';
+  sourceDoc = new DOMParser().parseFromString(text, 'text/html');
 
+  undoStack.length = 0;
+  updateUndoButton();
+
+  await renderPreviewFromSource(0);
+
+  zoomFactor = 1;
+  applyZoom();
+
+  dirty = false;
+  els.btnSave.disabled = true;
+  els.editMode.disabled = false;
+  els.editMode.checked = true; // start ready to edit — no extra click needed
+  els.zoomOut.disabled = false;
+  els.zoomIn.disabled = false;
+  els.zoomReset.disabled = false;
+  els.btnPresent.disabled = false;
+  setStatus(`${entry.label} — ${slidePairs.length} slide(s)`, 'ok');
+}
+
+// Rebuilds the edit-mode iframe from whatever sourceDoc currently is —
+// used both for the initial open and for jumping back after an undo.
+// Scripts stripped, reveals forced visible, local images -> blob URLs.
+async function renderPreviewFromSource(targetSlideIndex) {
   const parser = new DOMParser();
-  sourceDoc = parser.parseFromString(text, 'text/html');
-
-  const previewDoc = parser.parseFromString(text, 'text/html');
+  const previewDoc = parser.parseFromString(sourceDoc.documentElement.outerHTML, 'text/html');
   previewDoc.querySelectorAll('script').forEach((s) => s.remove());
   const overrideStyle = previewDoc.createElement('style');
   overrideStyle.id = '__editor_preview_override';
@@ -231,29 +309,64 @@ async function openTalk(entry) {
     els.preview.src = url;
   });
 
+  const previewDocLive = els.preview.contentDocument;
   // Without this, dropping a file anywhere that isn't an explicit drop
   // target makes the browser navigate the iframe to that file.
-  const previewDocLive = els.preview.contentDocument;
   previewDocLive.addEventListener('dragover', (e) => e.preventDefault());
   previewDocLive.addEventListener('drop', (e) => e.preventDefault());
+  previewDocLive.addEventListener('keydown', handleUndoKeydown);
 
   buildSlidePairs();
   renderSlideNav();
-  currentSlide = 0;
-  goToSlide(0);
-
-  zoomFactor = 1;
-  applyZoom();
-
-  dirty = false;
-  els.btnSave.disabled = true;
-  els.editMode.disabled = false;
-  els.editMode.checked = false;
-  els.zoomOut.disabled = false;
-  els.zoomIn.disabled = false;
-  els.zoomReset.disabled = false;
-  setStatus(`${entry.label} — ${slidePairs.length} slide(s)`, 'ok');
+  goToSlide(targetSlideIndex);
 }
+
+// ---------- Present mode ----------
+// Runs the deck for real (chassis.js included, untouched) in a
+// fullscreen overlay, starting on whatever slide you were editing —
+// scroll/swipe/arrow-key navigation is the actual chassis, not
+// anything of ours, so it behaves exactly like the published page.
+// Renders from the CURRENT sourceDoc (including unsaved edits), so you
+// can rehearse changes before deciding to save.
+async function enterPresentMode() {
+  if (!sourceDoc || !talkHandle || !slidePairs[currentSlide]) return;
+
+  const presentDoc = new DOMParser().parseFromString(sourceDoc.documentElement.outerHTML, 'text/html');
+  for (const img of Array.from(presentDoc.querySelectorAll('img'))) {
+    const src = img.getAttribute('src') || '';
+    if (!src || /^https?:/i.test(src)) continue;
+    try {
+      const imgFile = await readFileAt(talkHandle, src);
+      img.setAttribute('src', URL.createObjectURL(imgFile));
+    } catch (err) {
+      console.warn('could not load image for present mode', src, err);
+    }
+  }
+
+  const targetId = slidePairs[currentSlide].sourceSlide.id || `slide-${currentSlide + 1}`;
+  const blob = new Blob([docPrefix + presentDoc.documentElement.outerHTML], { type: 'text/html' });
+  els.presentFrame.src = `${URL.createObjectURL(blob)}#${targetId}`;
+  els.presentOverlay.hidden = false;
+
+  try {
+    await els.presentOverlay.requestFullscreen();
+  } catch (err) {
+    console.warn('fullscreen request failed', err);
+    setStatus('não deu pra entrar em tela cheia, mas a apresentação abriu — F11 no navegador também funciona', '');
+  }
+}
+
+function exitPresentMode() {
+  els.presentOverlay.hidden = true;
+  els.presentFrame.src = 'about:blank';
+  if (document.fullscreenElement) document.exitFullscreen();
+}
+
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && !els.presentOverlay.hidden) {
+    exitPresentMode();
+  }
+});
 
 function buildSlidePairs() {
   const sourceSlides = Array.from(sourceDoc.querySelectorAll('.slide-viewport'));
@@ -306,6 +419,7 @@ function wireCurrentSlideFields() {
       const clean = sanitizeInline(previewEl.innerHTML);
       if (clean !== previewEl.innerHTML) previewEl.innerHTML = clean;
       if (sourceEl.innerHTML !== clean) {
+        pushUndoSnapshot();
         sourceEl.innerHTML = clean;
         markDirty();
       }
@@ -385,7 +499,13 @@ function wireImageInteractions(previewImg, sourceImg) {
 
   function onMouseUp() {
     previewImg.ownerDocument.removeEventListener('mousemove', onMouseMove);
-    if (moved) markDirty();
+    if (moved) {
+      sourceImg.style.objectPosition = previewImg.style.objectPosition;
+      markDirty();
+    } else {
+      undoStack.pop(); // nothing actually changed — drop the tentative snapshot
+      updateUndoButton();
+    }
   }
 
   previewImg.onmousedown = (e) => {
@@ -395,6 +515,7 @@ function wireImageInteractions(previewImg, sourceImg) {
     startPos = parseObjectPosition(previewImg.style.objectPosition);
     rect = previewImg.getBoundingClientRect();
     e.preventDefault();
+    pushUndoSnapshot(); // tentative; popped in onMouseUp if it turns out to be just a click
     const doc = previewImg.ownerDocument;
     doc.addEventListener('mousemove', onMouseMove);
     doc.addEventListener('mouseup', onMouseUp, { once: true });
@@ -429,6 +550,13 @@ async function swapImage(previewImg, sourceImg, droppedFile) {
     file = await fileHandles[0].getFile();
   }
   const relPath = sourceImg.getAttribute('src');
+  let previousBytes = null;
+  try {
+    previousBytes = await readFileAt(talkHandle, relPath);
+  } catch (err) {
+    console.warn('could not read previous image for undo', relPath, err);
+  }
+  pushUndoSnapshot(previousBytes ? { relPath, bytes: previousBytes } : null);
   await writeFileAt(talkHandle, relPath, file);
   previewImg.src = URL.createObjectURL(file);
   markDirty();
@@ -453,6 +581,7 @@ async function fillEmptySlot(previewSlot, sourceSlot, droppedFile) {
   const relPath = `images/${slugify(file.name.replace(ext, ''))}${ext}`;
   await writeFileAt(talkHandle, relPath, file);
 
+  pushUndoSnapshot(); // slot was empty before — undo just needs the DOM snapshot back
   for (const [slot, doc] of [[sourceSlot, sourceDoc], [previewSlot, els.preview.contentDocument]]) {
     const img = doc.createElement('img');
     img.setAttribute('src', slot === sourceSlot ? relPath : URL.createObjectURL(file));
@@ -609,6 +738,11 @@ els.zoomReset.addEventListener('click', () => {
   zoomFactor = 1;
   applyZoom();
 });
+
+els.btnUndo.addEventListener('click', undo);
+window.addEventListener('keydown', handleUndoKeydown);
+
+els.btnPresent.addEventListener('click', enterPresentMode);
 
 els.btnSave.addEventListener('click', saveTalk);
 
