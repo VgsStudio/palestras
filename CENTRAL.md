@@ -36,13 +36,23 @@ Fluxo normal:
 ## Ajuste pontual sem passar pelo chat
 
 Pra trocar um texto, subir/trocar uma imagem ou ajustar o recorte de uma
-foto sem abrir uma conversa comigo — usa o **editor visual local** em
-[`_editor/`](_editor/README.md) (roda no navegador, Chrome/Edge, sem
-build). Ele edita o `index.html`/`images/` de uma palestra publicada ou
-de um rascunho direto; salvar não mexe em git, então o fluxo de conferir
-(`git diff`) e publicar continua igual. Mudança estrutural (slide novo,
-reordenar galeria, mover elemento livremente) ainda é trabalho do agente
-`palestra` — o editor não faz isso ainda.
+foto sem abrir uma conversa comigo, tem dois editores visuais — os dois
+só editam palestra **já existente e já publicada** (com `meta.json` na
+raiz, não em `_rascunhos/`). Criar uma palestra nova, mudança estrutural
+(slide novo, reordenar galeria, mover elemento livremente) ou qualquer
+coisa em `_rascunhos/` continua sendo trabalho do agente `palestra` por
+chat — nenhum dos dois editores faz isso.
+
+- **Local**, em [`_editor/`](_editor/README.md) — roda no navegador,
+  Chrome/Edge, sem build, exige a pasta do repo aberta no disco. Salvar
+  não mexe em git, então o fluxo de conferir (`git diff`) e publicar
+  continua igual.
+- **Hospedado**, em `slides.vsoller.com.br` — mesma engine de edição,
+  mas pelo navegador de qualquer lugar, atrás de login (Cognito + MFA,
+  só o Vitor tem acesso). "Publicar" já commita direto neste repo (via
+  API do GitHub) e atualiza o site na hora — não precisa git diff local
+  nem esperar o Action rodar. Repo próprio:
+  `github.com/VgsStudio/slides-editor`.
 
 ## Exemplos existentes (referência de estrutura e nível)
 
