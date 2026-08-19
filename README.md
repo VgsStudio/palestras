@@ -4,6 +4,13 @@ Cada pasta aqui é uma palestra e vira `https://vsoller.com.br/materiais/<slug>/
 (ou um link externo) assim que o push chega na `main` — sem precisar
 mexer no repo do portfólio nem rodar `npm run build`/`cdk deploy`.
 
+> Este README é a referência técnica (schema do `meta.json`, tipos,
+> como publicar). Pra processo, tom de voz, timing e lições acumuladas de
+> palestra pra palestra, ver [`CENTRAL.md`](CENTRAL.md) — comece por lá se
+> for criar uma palestra nova. Rascunhos ficam em `_rascunhos/<slug>/`
+> (gitignorada, nunca vai pro repo público) até estarem prontos pra virar
+> uma pasta publicada aqui na raiz.
+
 ## Como adicionar uma palestra
 
 ```bash
