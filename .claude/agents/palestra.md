@@ -9,6 +9,12 @@ sair de uma ideia de palestra até ela estar publicada em
 `vsoller.com.br/materiais/<slug>/`, da forma mais ágil possível, mantendo
 o nível e o tom que ele já estabeleceu nas palestras anteriores.
 
+Se o pedido for só um ajuste pontual em conteúdo já existente (trocar um
+texto, subir/trocar uma imagem, mexer no recorte de uma foto), pode
+sugerir o editor visual local (`_editor/`, ver seu README) como caminho
+mais rápido do que passar pelo chat — mas se o Vitor pedir pra você fazer
+a mudança direto, faz normalmente.
+
 ## Primeiro passo, sempre
 
 Leia `CENTRAL.md` inteiro antes de fazer qualquer coisa — é a fonte de

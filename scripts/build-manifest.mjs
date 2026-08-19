@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST = join(ROOT, 'dist')
-const SKIP_DIRS = new Set(['.git', '.github', '.claude', 'scripts', 'dist', 'node_modules', '_rascunhos'])
+const SKIP_DIRS = new Set(['.git', '.github', '.claude', 'scripts', 'dist', 'node_modules', '_rascunhos', '_editor'])
 
 rmSync(DIST, { recursive: true, force: true })
 mkdirSync(DIST, { recursive: true })

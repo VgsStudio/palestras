@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor de palestras</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="toolbar">
+  <button id="btn-open">Abrir pasta de palestras…</button>
+  <select id="talk-picker" disabled>
+    <option value="">nenhuma pasta aberta</option>
+  </select>
+  <span class="spacer"></span>
+  <label class="edit-toggle">
+    <input type="checkbox" id="edit-mode" disabled>
+    modo edição
+  </label>
+  <button id="btn-save" disabled>Salvar</button>
+  <span id="status" class="status"></span>
+</header>
+
+<div class="body">
+  <nav id="slide-nav" class="slide-nav"></nav>
+  <main class="preview-wrap">
+    <iframe id="preview" title="Preview do slide"></iframe>
+  </main>
+</div>
+
+<script type="module" src="editor.js"></script>
+</body>
+</html>

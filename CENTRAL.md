@@ -33,6 +33,17 @@ Fluxo normal:
 3. `git add <slug>/ && git commit && git push`. ~15-20s depois está no ar
    em `vsoller.com.br/materiais/<slug>/`.
 
+## Ajuste pontual sem passar pelo chat
+
+Pra trocar um texto, subir/trocar uma imagem ou ajustar o recorte de uma
+foto sem abrir uma conversa comigo — usa o **editor visual local** em
+[`_editor/`](_editor/README.md) (roda no navegador, Chrome/Edge, sem
+build). Ele edita o `index.html`/`images/` de uma palestra publicada ou
+de um rascunho direto; salvar não mexe em git, então o fluxo de conferir
+(`git diff`) e publicar continua igual. Mudança estrutural (slide novo,
+reordenar galeria, mover elemento livremente) ainda é trabalho do agente
+`palestra` — o editor não faz isso ainda.
+
 ## Exemplos existentes (referência de estrutura e nível)
 
 - **`certificado-antes-de-formado/`** — 17 slides, sobre a trilha de
