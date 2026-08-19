@@ -204,6 +204,12 @@ async function openTalk(entry) {
     body.chassis-cursor-active, body.chassis-cursor-active *{cursor:auto !important;}
     html.__editor-edit-mode [data-editor-editable="true"]:hover{outline:2px dashed #ff6a21; outline-offset:2px; cursor:pointer !important;}
     html.__editor-edit-mode [data-editor-editable="true"][contenteditable="true"]:focus{outline:2px solid #ff6a21; outline-offset:2px; cursor:text !important;}
+    .editor-drag-over{
+      outline:4px dashed #ff6a21 !important;
+      outline-offset:-4px;
+      background:rgba(255,106,33,0.18) !important;
+      filter:brightness(1.05);
+    }
   `;
   previewDoc.head.appendChild(overrideStyle);
 
@@ -224,6 +230,12 @@ async function openTalk(entry) {
     els.preview.onload = resolve;
     els.preview.src = url;
   });
+
+  // Without this, dropping a file anywhere that isn't an explicit drop
+  // target makes the browser navigate the iframe to that file.
+  const previewDocLive = els.preview.contentDocument;
+  previewDocLive.addEventListener('dragover', (e) => e.preventDefault());
+  previewDocLive.addEventListener('drop', (e) => e.preventDefault());
 
   buildSlidePairs();
   renderSlideNav();
@@ -305,6 +317,7 @@ function wireCurrentSlideFields() {
     if (!sourceImg) return;
     previewImg.dataset.editorEditable = 'true';
     wireImageInteractions(previewImg, sourceImg);
+    wireDropTarget(previewImg, (file) => swapImage(previewImg, sourceImg, file));
   });
 
   previewFields.emptySlots.forEach((previewSlot, i) => {
@@ -315,40 +328,77 @@ function wireCurrentSlideFields() {
       if (!els.editMode.checked) return;
       fillEmptySlot(previewSlot, sourceSlot);
     };
+    wireDropTarget(previewSlot, (file) => fillEmptySlot(previewSlot, sourceSlot, file));
+  });
+}
+
+// Native OS drag-and-drop (dragging a file from Explorer/Finder in),
+// separate from the mouse-drag used for crop repositioning above.
+function wireDropTarget(el, onFile) {
+  el.addEventListener('dragenter', (e) => {
+    if (!els.editMode.checked) return;
+    e.preventDefault();
+    el.classList.add('editor-drag-over');
+  });
+  el.addEventListener('dragover', (e) => {
+    if (!els.editMode.checked) return;
+    e.preventDefault(); // required for drop to fire
+  });
+  el.addEventListener('dragleave', () => {
+    el.classList.remove('editor-drag-over');
+  });
+  el.addEventListener('drop', (e) => {
+    if (!els.editMode.checked) return;
+    e.preventDefault();
+    e.stopPropagation();
+    el.classList.remove('editor-drag-over');
+    const file = e.dataTransfer?.files?.[0];
+    if (file && file.type.startsWith('image/')) onFile(file);
   });
 }
 
 function wireImageInteractions(previewImg, sourceImg) {
-  let dragStart = null;
   let moved = false;
+
+  // Tracks mousemove/mouseup on the IFRAME's own document, not just the
+  // image element — a plain per-element listener stops firing the moment
+  // a fast drag carries the cursor outside the image's small box, which
+  // is exactly what made dragging feel stuck and let leftover "not
+  // really moved" clicks fall through to swapImage by mistake.
+  let dragStart = null;
+  let startPos = null;
+  let rect = null;
+
+  function onMouseMove(e) {
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+    // Dragging should feel like grabbing the photo itself: drag down to
+    // reveal more of what's above, i.e. content follows the cursor —
+    // which means the object-position anchor moves the OPPOSITE way.
+    const nextX = clampPct(startPos.x - (dx / rect.width) * 100);
+    const nextY = clampPct(startPos.y - (dy / rect.height) * 100);
+    const pos = `${nextX.toFixed(1)}% ${nextY.toFixed(1)}%`;
+    previewImg.style.objectPosition = pos;
+    sourceImg.style.objectPosition = pos;
+  }
+
+  function onMouseUp() {
+    previewImg.ownerDocument.removeEventListener('mousemove', onMouseMove);
+    if (moved) markDirty();
+  }
 
   previewImg.onmousedown = (e) => {
     if (!els.editMode.checked) return;
-    dragStart = { x: e.clientX, y: e.clientY };
     moved = false;
-    e.preventDefault();
-  };
-  previewImg.onmousemove = (e) => {
-    if (!dragStart) return;
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
-    if (!moved) return;
-    const rect = previewImg.getBoundingClientRect();
-    const current = parseObjectPosition(previewImg.style.objectPosition);
-    const nextX = clampPct(current.x + (dx / rect.width) * 100);
-    const nextY = clampPct(current.y + (dy / rect.height) * 100);
-    const pos = `${nextX.toFixed(0)}% ${nextY.toFixed(0)}%`;
-    previewImg.style.objectPosition = pos;
-    sourceImg.style.objectPosition = pos;
     dragStart = { x: e.clientX, y: e.clientY };
+    startPos = parseObjectPosition(previewImg.style.objectPosition);
+    rect = previewImg.getBoundingClientRect();
+    e.preventDefault();
+    const doc = previewImg.ownerDocument;
+    doc.addEventListener('mousemove', onMouseMove);
+    doc.addEventListener('mouseup', onMouseUp, { once: true });
   };
-  const endDrag = () => {
-    if (moved) markDirty();
-    dragStart = null;
-  };
-  previewImg.onmouseup = endDrag;
-  previewImg.onmouseleave = endDrag;
 
   previewImg.onclick = async () => {
     if (!els.editMode.checked || moved) return;
@@ -364,17 +414,20 @@ function clampPct(n) {
   return Math.max(0, Math.min(100, n));
 }
 
-async function swapImage(previewImg, sourceImg) {
-  let fileHandles;
-  try {
-    fileHandles = await window.showOpenFilePicker({
-      multiple: false,
-      types: [{ description: 'Imagens', accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'] } }],
-    });
-  } catch {
-    return; // user cancelled
+async function swapImage(previewImg, sourceImg, droppedFile) {
+  let file = droppedFile;
+  if (!file) {
+    let fileHandles;
+    try {
+      fileHandles = await window.showOpenFilePicker({
+        multiple: false,
+        types: [{ description: 'Imagens', accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'] } }],
+      });
+    } catch {
+      return; // user cancelled
+    }
+    file = await fileHandles[0].getFile();
   }
-  const file = await fileHandles[0].getFile();
   const relPath = sourceImg.getAttribute('src');
   await writeFileAt(talkHandle, relPath, file);
   previewImg.src = URL.createObjectURL(file);
@@ -382,17 +435,20 @@ async function swapImage(previewImg, sourceImg) {
   setStatus(`imagem "${relPath}" atualizada`, 'ok');
 }
 
-async function fillEmptySlot(previewSlot, sourceSlot) {
-  let fileHandles;
-  try {
-    fileHandles = await window.showOpenFilePicker({
-      multiple: false,
-      types: [{ description: 'Imagens', accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'] } }],
-    });
-  } catch {
-    return;
+async function fillEmptySlot(previewSlot, sourceSlot, droppedFile) {
+  let file = droppedFile;
+  if (!file) {
+    let fileHandles;
+    try {
+      fileHandles = await window.showOpenFilePicker({
+        multiple: false,
+        types: [{ description: 'Imagens', accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif'] } }],
+      });
+    } catch {
+      return;
+    }
+    file = await fileHandles[0].getFile();
   }
-  const file = await fileHandles[0].getFile();
   const ext = file.name.slice(file.name.lastIndexOf('.'));
   const relPath = `images/${slugify(file.name.replace(ext, ''))}${ext}`;
   await writeFileAt(talkHandle, relPath, file);
@@ -562,6 +618,11 @@ window.addEventListener('beforeunload', (e) => {
     e.returnValue = '';
   }
 });
+
+// Guard the outer page too, so a drop that lands just outside the
+// iframe (toolbar, sidebar) doesn't navigate the whole tab to the file.
+window.addEventListener('dragover', (e) => e.preventDefault());
+window.addEventListener('drop', (e) => e.preventDefault());
 
 if (!window.showDirectoryPicker) {
   setStatus('Esse navegador não suporta File System Access API — use Chrome ou Edge.', 'error');
