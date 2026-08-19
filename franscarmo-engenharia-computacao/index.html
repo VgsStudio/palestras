@@ -1,0 +1,1810 @@
+<html lang="en-US" dir="ltr" class="reveals-ready"><head><meta charset="utf-8"><base href="."><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><link rel="icon" type="image/png" href="https://app-cdn.clickup.com/assets/favicons/favicon-16x16.png" sizes="16x16"><link rel="icon" type="image/png" href="https://app-cdn.clickup.com/assets/favicons/favicon-32x32.png" sizes="32x32"><style>.cu-embedded-html__container[_ngcontent-ng-c2098788134]{display:flow-root;width:100%}</style></head><body data-git-sha="9ab82adfead390791280e2ccf010fd6d5289de80" data-build-version="4.18.0" data-build-time="2026-08-18T16:51:37.963Z" class="chassis-cursor-active"><cu-root ng-version="21.2.19" _nghost-ng-c2098788134=""><div _ngcontent-ng-c2098788134="" class="cu-embedded-html__container">
+
+
+<!-- skill:chassis -->
+<style>
+/* =====================================================
+   PRESENTATION CHASSIS — style-invariant base styles
+   Fixed 1920×1080 canvas scaled to fit any viewport.
+   Customize colors, fonts, and chrome via :root tokens.
+   ===================================================== */
+
+/* ---------- Universal reset ---------- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Theme tokens (override in your deck's CSS) ---------- */
+:root {
+    color-scheme: light;
+
+    --background:      #ffffff;
+    --foreground:      #111111;
+    --card:            #f5f5f5;
+    --card-foreground: var(--foreground);
+    --accent:          #c94a3d;
+    --accent-foreground: #ffffff;
+
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --border:           color-mix(in srgb, var(--foreground) 12%, transparent);
+
+    --font-display: Georgia, serif;
+    --font-body: -apple-system, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Reveal animation */
+    --reveal-duration: 0.8s;
+    --reveal-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-distance: 28px;
+
+    /* Chrome (nav dots, keyboard hint) */
+    --nav-dot-size: 9px;
+    --nav-dot-radius: 50%;
+    --nav-dot-color: var(--foreground);
+    --nav-dot-active-color: var(--accent);
+    --nav-dot-opacity: 0.4;
+}
+
+/* ---------- Viewport lock + scroll snap ---------- */
+html, body { height: 100%; overflow-x: hidden; }
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* ---------- Type scale ----------
+   Fixed px sizes on a 1920×1080 canvas. The canvas is scaled to fit
+   any viewport via transform, so these sizes are absolute within the
+   design surface — no responsive units needed. */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 36px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 120px; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -0.01em; }
+h3 { font-size: 44px; line-height: 1.2; }
+.eyebrow {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+ul, ol { padding-left: 48px; display: flex; flex-direction: column; gap: 24px; }
+li::marker { color: var(--accent); }
+
+/* ---------- Slide structure ----------
+   .slide is the authored 1920×1080 artboard.
+   The chassis wraps it in viewport + scale layers at runtime. */
+.slide-viewport {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: block;
+    position: relative;
+    background: var(--background);
+    isolation: isolate;
+    z-index: 1;
+}
+
+.slide-scale {
+    width: 1920px;
+    height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+    transform-origin: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+}
+
+.slide {
+    width: 1920px;
+    height: 1080px;
+    padding: 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    background: transparent;
+}
+
+
+/* ---------- Image defaults ---------- */
+img, .image-container {
+    max-width: 100%;
+    max-height: 540px;
+    object-fit: contain;
+}
+
+/* ---------- Reveal primitives ----------
+   Driven by chassis.js via the Web Animations API, not CSS transitions.
+   Put .reveal* or .step on ANY element — author CSS on the same element
+   (opacity, transform, transition, filter) never conflicts, because
+   WAAPI animations live in the animation cascade origin and win over
+   normal author declarations. The .dN stagger classes below still apply
+   to theme-authored CSS animations via animation-delay.
+
+   Variants: .reveal (fade + up), .reveal-left, .reveal-right,
+   .reveal-scale, .reveal-blur. .step stays hidden until the user
+   advances forward. Don't combine .step with .reveal* on the same
+   element. */
+
+/* FOUC guard: hide reveals until chassis.js marks the document ready. */
+:root:not(.reveals-ready) .reveal,
+:root:not(.reveals-ready) .reveal-left,
+:root:not(.reveals-ready) .reveal-right,
+:root:not(.reveals-ready) .reveal-scale,
+:root:not(.reveals-ready) .reveal-blur,
+:root:not(.reveals-ready) .step {
+    opacity: 0;
+}
+:root:not(.reveals-ready) .reveal-blur { filter: blur(10px); }
+
+/* ---------- Stagger delays (.d1 … .d8) ---------- */
+.slide.visible .d1 { transition-delay: 0.10s; animation-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.25s; animation-delay: 0.25s; }
+.slide.visible .d3 { transition-delay: 0.40s; animation-delay: 0.40s; }
+.slide.visible .d4 { transition-delay: 0.55s; animation-delay: 0.55s; }
+.slide.visible .d5 { transition-delay: 0.70s; animation-delay: 0.70s; }
+.slide.visible .d6 { transition-delay: 0.85s; animation-delay: 0.85s; }
+.slide.visible .d7 { transition-delay: 1.00s; animation-delay: 1.00s; }
+.slide.visible .d8 { transition-delay: 1.15s; animation-delay: 1.15s; }
+
+/* ---------- Nav dots ----------
+   Default: right-center (vertical stack on right edge).
+   Override with <body data-nav="bottom | top-right | hidden">. */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1.5vw, 1.4rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vh, 0.8rem);
+    z-index: 50;
+}
+
+body[data-nav="bottom"] .nav-dots {
+    right: auto;
+    top: auto;
+    bottom: clamp(1rem, 2.5vh, 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+body[data-nav="top-right"] .nav-dots {
+    right: clamp(1rem, 2.5vw, 2rem);
+    top: clamp(1rem, 2.5vh, 2rem);
+    transform: none;
+    flex-direction: row;
+}
+
+body[data-nav="hidden"] .nav-dots { display: none; }
+
+body[data-nav="bottom"] .keyboard-hint {
+    left: clamp(1rem, 2vw, 1.5rem);
+    transform: none;
+}
+
+.nav-dots button {
+    width: var(--nav-dot-size);
+    height: var(--nav-dot-size);
+    border-radius: var(--nav-dot-radius);
+    border: 1.5px solid var(--nav-dot-color);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: var(--nav-dot-opacity);
+}
+.nav-dots button:hover { opacity: 0.85; transform: scale(1.15); }
+.nav-dots button:focus-visible {
+    outline: 2px solid var(--nav-dot-active-color);
+    outline-offset: 3px;
+    opacity: 1;
+}
+.nav-dots button.active {
+    background: var(--nav-dot-active-color);
+    border-color: var(--nav-dot-active-color);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ---------- Keyboard hint ---------- */
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.keyboard-hint kbd {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.9em;
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--background);
+    margin: 0 0.15em;
+}
+
+/* ---------- Credit line ---------- */
+.chassis-credit {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.02em;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.chassis-credit .chassis-credit-emoji {
+    font-style: normal;
+    margin: 0 0.15em;
+}
+
+body[data-nav="bottom"] .chassis-credit {
+    left: auto;
+    right: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ---------- Custom cursor ---------- */
+.chassis-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--accent);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+.chassis-cursor.visible { opacity: 1; }
+body.artifact-editor-editing .chassis-cursor { display: none; }
+
+@media (hover: none) {
+    .chassis-cursor { display: none; }
+}
+
+body.chassis-cursor-active:not(.artifact-editor-editing),
+body.chassis-cursor-active:not(.artifact-editor-editing) * { cursor: none; }
+
+/* ---------- Opt-outs ---------- */
+body[data-no-chrome] .nav-dots,
+body[data-no-chrome] .keyboard-hint,
+body[data-no-chrome] .chassis-credit,
+body[data-no-chrome] .chassis-cursor,
+body[data-no-chrome] .artifact-editor-toggle { display: none; }
+
+:fullscreen .keyboard-hint,
+:fullscreen .chassis-credit,
+:fullscreen .artifact-editor-toggle { display: none; }
+
+@media (hover: none) {
+    .keyboard-hint,
+    .chassis-credit { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 560px) {
+    .nav-dots,
+    .keyboard-hint,
+    .chassis-credit,
+    .chassis-cursor { display: none; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* ---------- Print (PDF export) ---------- */
+@media print {
+    .nav-dots, .keyboard-hint, .chassis-credit, .chassis-cursor { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    html { scroll-snap-type: none; }
+    .slide-viewport {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+    }
+    .slide-scale {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .slide {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+</style>
+<script data-activated="true">
+/* =====================================================
+   PRESENTATION CHASSIS — slide controller
+   Auto-initializes on DOMContentLoaded.
+   Exposes window.slides for programmatic control.
+   ===================================================== */
+(function () {
+    'use strict';
+
+    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+    const STEP_SELECTOR = '.step';
+    const ALL_REVEAL_SELECTOR = REVEAL_SELECTOR + ', ' + STEP_SELECTOR;
+    const VIEWPORT_CLASS = 'slide-viewport';
+    const SCALE_CLASS = 'slide-scale';
+
+    function _detectLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        return (param || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+
+    class SlidePresentation {
+        constructor() {
+            this.slides = Array.from(document.querySelectorAll('.slide'));
+            if (this.slides.length === 0) return;
+
+            // Ensure every slide has an id so hashes + anchor links work.
+            // Author-defined ids are preserved; the rest get slide-N (1-indexed).
+            this.slides.forEach((slide, idx) => {
+                if (!slide.id) slide.id = `slide-${idx + 1}`;
+            });
+            this.viewports = this._setupViewports();
+            this.scales = this.viewports.map((viewport) => viewport.querySelector(`.${SCALE_CLASS}`));
+
+            // Hide every reveal element BEFORE lifting the CSS FOUC guard.
+            // After this, .reveals-ready is on <html>, so CSS no longer hides
+            // reveals — inline styles keep them hidden until JS animates them.
+            this._setupReveals();
+
+            this.navDotsContainer = this._ensureNavDots();
+            this.keyboardHint = this._ensureKeyboardHint();
+            this.credit = this._ensureCredit();
+
+            this._setupCanvasScale();
+            this._setupIntersectionObserver();
+            this._setupKeyboardNav();
+            this._setupWheelNav();
+            this._setupTouchNav();
+            this._setupViewportSync();
+            this._buildNavDots();
+            this._setupHashNav();
+            this._setupCursor();
+            this._setupPrintSettling();
+
+            // If URL has a matching hash, start there; otherwise start at slide 0.
+            const initial = this._slideIndexFromHash(location.hash);
+            this.currentSlide = initial >= 0 ? initial : 0;
+            if (this.currentSlide !== 0) {
+                this._scrollToSlide(this.currentSlide, 'auto');
+            }
+            // Reveal initial slide immediately (observer may miss it on load).
+            const first = this.slides[this.currentSlide];
+            first.classList.add('visible');
+            this._playSlideReveals(first);
+            this._updateNavDots();
+        }
+
+        /* ---------- Viewport scaffolding ----------
+           Authors write .slide as the 1920×1080 artboard. The chassis wraps
+           that authored section in viewport and scale layers. */
+        _setupViewports() {
+            return this.slides.map((slide) => {
+                const existingScale = slide.parentElement?.classList.contains(SCALE_CLASS)
+                    ? slide.parentElement
+                    : null;
+                const existingViewport = existingScale?.parentElement?.classList.contains(VIEWPORT_CLASS)
+                    ? existingScale.parentElement
+                    : null;
+                if (existingViewport) {
+                    this._syncViewportBackground(slide, existingViewport);
+                    return existingViewport;
+                }
+
+                const viewport = document.createElement('div');
+                viewport.className = VIEWPORT_CLASS;
+                const scale = document.createElement('div');
+                scale.className = SCALE_CLASS;
+
+                slide.parentNode.insertBefore(viewport, slide);
+                viewport.appendChild(scale);
+                scale.appendChild(slide);
+                this._syncViewportBackground(slide, viewport);
+
+                return viewport;
+            });
+        }
+
+        _syncViewportBackground(slide, viewport) {
+            const style = getComputedStyle(slide);
+            const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
+            const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
+            if (hasBackgroundImage || hasBackgroundColor) {
+                viewport.style.background = style.background;
+            } else {
+                viewport.style.background = '';
+            }
+            slide.style.background = 'transparent';
+        }
+
+        /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
+        _ensureNavDots() {
+            let el = document.getElementById('navDots');
+            if (!el) {
+                el = document.createElement('nav');
+                el.id = 'navDots';
+                el.className = 'nav-dots';
+                el.setAttribute('aria-label', 'Slide navigation');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureKeyboardHint() {
+            let el = document.querySelector('.keyboard-hint');
+            if (!el) {
+                const i18n = {
+                    en: { navigate: 'navigate', restart: 'restart', fullscreen: 'fullscreen' },
+                    es: { navigate: 'navegar',   restart: 'inicio',   fullscreen: 'fullscreen' },
+                    fr: { navigate: 'naviguer',  restart: 'début',    fullscreen: 'fullscreen' },
+                    de: { navigate: 'blättern',  restart: 'anfang',   fullscreen: 'vollbild' },
+                    pt: { navigate: 'navegar',   restart: 'início',   fullscreen: 'fullscreen' },
+                    ja: { navigate: '移動',      restart: '先頭',      fullscreen: '全画面' },
+                    ko: { navigate: '이동',      restart: '처음',      fullscreen: '전체화면' },
+                    zh: { navigate: '翻页',      restart: '重置',      fullscreen: '全屏' },
+                    it: { navigate: 'navigare',  restart: 'inizio',   fullscreen: 'fullscreen' },
+                    nl: { navigate: 'bladeren',  restart: 'begin',    fullscreen: 'vollscherm' },
+                };
+                const t = i18n[_detectLang()] || i18n.en;
+                el = document.createElement('div');
+                el.className = 'keyboard-hint';
+                el.innerHTML = `<kbd>←</kbd> <kbd>→</kbd> ${t.navigate} &middot; <kbd>R</kbd> ${t.restart} &middot; <kbd>F</kbd> ${t.fullscreen}`;
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureCredit() {
+            let el = document.querySelector('.chassis-credit');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'chassis-credit';
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML = '💜 by ClickUp Brain';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        /* ---------- Reveal engine ----------
+           Reveals are driven by the Web Animations API instead of CSS
+           transitions. This lets authors put .reveal* / .step on any
+           element: animation values live in the animation cascade origin
+           and win over normal author declarations, so no wrapper element
+           is required to isolate the chassis from author CSS.
+
+           State per slide:
+           - "hidden":  inline opacity/transform/filter from the 'from'
+                        keyframe of the variant. Set on init and on
+                        forward re-entry.
+           - "played":  animation is running or has run; the class
+                        `reveals-played` on the slide makes playback
+                        idempotent so observer re-fires (resize,
+                        fullscreen) don't restart the animation.
+           - "settled": animation canceled, inline styles cleared. Used
+                        for backward entries (we skip the animation and
+                        show the final state instantly) and for print. */
+
+        _setupReveals() {
+            // Lift the CSS FOUC guard first so getComputedStyle reads each
+            // element's natural opacity, not the guard's blanket opacity: 0.
+            // No paint occurs mid-task — inline hidden styles are applied
+            // before the browser yields, so there is no visible flash.
+            document.documentElement.classList.add('reveals-ready');
+            this.slides.forEach((slide) => {
+                // Static export: slides that were already revealed when this
+                // file was saved (class="... reveals-played") must stay as
+                // shown — only pre-hide reveals on slides not yet played.
+                const alreadyPlayed = slide.classList.contains('reveals-played');
+                slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                    el._targetOpacity = parseFloat(getComputedStyle(el).opacity);
+                    if (!alreadyPlayed) this._applyHiddenStyle(el);
+                });
+            });
+        }
+
+        _setupPrintSettling() {
+            // Browsers snapshot the document for print/PDF export. WAAPI
+            // animations don't necessarily complete in that snapshot, so
+            // settle every slide to its final state first. After printing,
+            // reset — but only for slides that haven't already been viewed,
+            // so the audience experience picks up where it left off.
+            window.addEventListener('beforeprint', () => {
+                this.slides.forEach((slide) => this._settleSlide(slide));
+            });
+        }
+
+        _readTokens() {
+            const cs = getComputedStyle(document.documentElement);
+            const rawDuration = parseFloat(cs.getPropertyValue('--reveal-duration'));
+            const duration = Number.isFinite(rawDuration) ? rawDuration * 1000 : 800;
+            const ease = cs.getPropertyValue('--reveal-ease').trim() || 'cubic-bezier(0.16, 1, 0.3, 1)';
+            const distance = cs.getPropertyValue('--reveal-distance').trim() || '28px';
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            return {
+                duration: reducedMotion ? 1 : duration,
+                ease,
+                distance,
+            };
+        }
+
+        _getRevealDelay(el) {
+            // Use getAttribute('class') rather than el.className: on SVG
+            // elements, `.className` is an SVGAnimatedString (not a string)
+            // and calling .match on it throws. getAttribute is uniform
+            // across HTML and SVG.
+            const classes = el.getAttribute('class') || '';
+            const m = classes.match(/\bd([1-8])\b/);
+            if (!m) return 0;
+            // Matches CSS .dN: d1 = 100ms, d2 = 250ms, +150ms per step.
+            return 100 + (parseInt(m[1], 10) - 1) * 150;
+        }
+
+        _getRevealKeyframes(el, distance) {
+            const to = el._targetOpacity ?? 1;
+            if (el.classList.contains('reveal-left')) {
+                return [
+                    { opacity: 0, transform: `translateX(calc(-1 * ${distance}))` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-right')) {
+                return [
+                    { opacity: 0, transform: `translateX(${distance})` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-scale')) {
+                return [
+                    { opacity: 0, transform: 'scale(0.88)' },
+                    { opacity: to, transform: 'scale(1)' },
+                ];
+            }
+            if (el.classList.contains('reveal-blur')) {
+                return [
+                    { opacity: 0, filter: 'blur(10px)' },
+                    { opacity: to, filter: 'blur(0)' },
+                ];
+            }
+            // Default: .reveal or .step (slide up + fade)
+            return [
+                { opacity: 0, transform: `translateY(${distance})` },
+                { opacity: to, transform: 'translateY(0)' },
+            ];
+        }
+
+        _applyHiddenStyle(el) {
+            const { distance } = this._readTokens();
+            const from = this._getRevealKeyframes(el, distance)[0];
+            if ('opacity' in from) el.style.opacity = from.opacity;
+            if ('transform' in from) el.style.transform = from.transform;
+            if ('filter' in from) el.style.filter = from.filter;
+        }
+
+        _clearHiddenStyle(el) {
+            el.style.opacity = '';
+            el.style.transform = '';
+            el.style.filter = '';
+        }
+
+        _cancelReveal(el) {
+            if (el._revealAnim) {
+                el._revealAnim.cancel();
+                el._revealAnim = null;
+            }
+        }
+
+        _playReveal(el, delayOverride) {
+            this._cancelReveal(el);
+            const { duration, ease, distance } = this._readTokens();
+            const delay = typeof delayOverride === 'number' ? delayOverride : this._getRevealDelay(el);
+            const keyframes = this._getRevealKeyframes(el, distance);
+            // fill: 'backwards' applies the 'from' keyframe during the
+            // stagger delay so the element stays hidden until its turn,
+            // without pinning the 'to' keyframe after the animation ends.
+            // This lets co-existing author CSS (e.g. a `.pulse` CSS
+            // animation on the same element) take over naturally once the
+            // entrance completes — otherwise our fill would mask anything
+            // the author wanted to happen post-reveal.
+            const anim = el.animate(keyframes, {
+                duration,
+                delay,
+                easing: ease,
+                fill: 'backwards',
+            });
+            el._revealAnim = anim;
+            // Safe to clear inline 'from' styles now — the animation's
+            // backwards-fill holds the element at the 'from' keyframe for
+            // the duration of any stagger delay.
+            this._clearHiddenStyle(el);
+        }
+
+        _playSlideReveals(slide) {
+            if (slide.classList.contains('reveals-played')) return;
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => this._playReveal(el));
+            // .step elements stay hidden until the user advances.
+        }
+
+        _resetSlideReveals(slide) {
+            // Disabled for this static export: never re-hide content that
+            // was already revealed, so opening or navigating the deck never
+            // makes shown content disappear.
+        }
+
+        _settleSlide(slide) {
+            // Print / PDF export: jump to the final state with everything
+            // shown, so every step appears in the exported document.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => el.classList.add('step-shown'));
+        }
+
+        _rewindSlide(slide) {
+            // Backward re-entry: show reveals instantly (no replay — the
+            // viewer already saw the intro) but hide every step, so the
+            // slide is positioned at the start of its stepped content and
+            // can be stepped through again.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => {
+                el.classList.remove('step-shown');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+        }
+
+        /* ---------- Navigation ----------
+           goTo scrolls to the target. Both forward-replay and backward-
+           rewind need to mutate the target BEFORE scrolling — while it's
+           still offscreen — so the viewer never sees the old state flash
+           into view. Resetting after the slide is in view causes a visible
+           "show then hide" blink; the IntersectionObserver fires too late
+           (80% threshold) to catch it. */
+        goTo(index) {
+            const clamped = Math.max(0, Math.min(this.slides.length - 1, index));
+            if (clamped === this.currentSlide) return;
+
+            const target = this.slides[clamped];
+            const goingForward = clamped > this.currentSlide;
+
+            if (target.classList.contains('visible')) {
+                if (goingForward) {
+                    // Forward replay: full reset so the observer can play reveals fresh.
+                    target.classList.remove('visible');
+                    this._resetSlideReveals(target);
+                } else {
+                    // Backward rewind: hide any shown steps so the slide
+                    // scrolls back in at the start of its stepped content.
+                    this._rewindSlide(target);
+                }
+            }
+
+            this._scrollToSlide(clamped, 'smooth');
+        }
+
+        _scrollToSlide(index, behavior) {
+            this.viewports[index]?.scrollIntoView({ behavior, block: 'start' });
+        }
+
+        _slideIndexFromHash(hash) {
+            if (!hash) return -1;
+            return this.slides.findIndex((s) => '#' + s.id === hash);
+        }
+
+        _syncHash() {
+            const slide = this.slides[this.currentSlide];
+            if (!slide || !slide.id) return;
+            const newHash = '#' + slide.id;
+            if (location.hash !== newHash) {
+                // replaceState — keeps the URL in sync without polluting history,
+                // so the browser back button exits the deck instead of stepping through slides.
+                try {
+                    history.replaceState(null, '', newHash);
+                } catch {
+                    // Sandboxed iframes (opaque origin, about:srcdoc) reject URL
+                    // mutation with a SecurityError. Hash sync is a nicety — an
+                    // unguarded throw here kills the observer callback before it
+                    // marks the slide visible and plays its reveals.
+                }
+            }
+        }
+
+        _setupHashNav() {
+            // React to external hash changes (anchor link clicks, back/forward if user uses pushState manually)
+            window.addEventListener('hashchange', () => {
+                const idx = this._slideIndexFromHash(location.hash);
+                if (idx >= 0 && idx !== this.currentSlide) this.goTo(idx);
+            });
+        }
+
+        /* ---------- Custom cursor ----------
+           Accent disc that follows the pointer, hidden after idle. */
+        _setupCursor() {
+            if (!matchMedia('(hover: hover)').matches) return;
+
+            const cursor = document.createElement('div');
+            cursor.className = 'chassis-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+            document.body.classList.add('chassis-cursor-active');
+
+            const half = 16;  // matches width/height / 2 in CSS
+            const IDLE_MS = 2500;
+            let idleTimer = null;
+
+            const show = () => {
+                cursor.classList.add('visible');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    cursor.classList.remove('visible');
+                }, IDLE_MS);
+            };
+            const hide = () => {
+                clearTimeout(idleTimer);
+                cursor.classList.remove('visible');
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate3d(${e.clientX - half}px, ${e.clientY - half}px, 0)`;
+                show();
+            });
+            document.addEventListener('mouseleave', hide);
+            document.addEventListener('mouseenter', show);
+        }
+
+        /* ---------- Fullscreen ---------- */
+        toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.();
+            }
+        }
+
+        next() { this.goTo(this.currentSlide + 1); }
+        prev() { this.goTo(this.currentSlide - 1); }
+        first() { this.goTo(0); }
+        last() { this.goTo(this.slides.length - 1); }
+
+        /* ---------- Step-aware advance / retreat ----------
+           advance() reveals the next .step on the current slide (if any),
+           otherwise advances to the next slide. retreat() hides the last
+           revealed step, otherwise goes back to the previous slide. */
+        advance() {
+            const current = this.slides[this.currentSlide];
+            const nextStep = current?.querySelector('.step:not(.step-shown)');
+            if (nextStep) {
+                nextStep.classList.add('step-shown');
+                // No stagger on click-reveal — the user's gesture is the trigger.
+                this._playReveal(nextStep, 0);
+                return;
+            }
+            this.next();
+        }
+        retreat() {
+            const current = this.slides[this.currentSlide];
+            const shown = current?.querySelectorAll('.step.step-shown');
+            if (shown && shown.length > 0) {
+                const last = shown[shown.length - 1];
+                last.classList.remove('step-shown');
+                this._cancelReveal(last);
+                this._applyHiddenStyle(last);
+                return;
+            }
+            this.prev();
+        }
+
+        /* ---------- Intersection observer ----------
+           Fire late (>= 80% in view) so reveals play on a settled slide.
+           This is the single source of truth for active-slide state.
+
+           Forward:  add .visible, play reveals. (goTo() has already reset
+                     the target to pre-reveal state if this is a re-visit,
+                     so the animation is fresh either way.)
+           Backward: add .visible, rewind to the start of the stepped
+                     content — reveals are shown instantly (no replay) and
+                     every step is hidden again so the viewer can step
+                     through it fresh. */
+        _setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const idx = this.viewports.indexOf(entry.target);
+                    if (idx < 0) return;
+                    const slide = this.slides[idx];
+
+                    if (idx === this.currentSlide) {
+                        // Same-slide re-fire (initial load, resize, fullscreen).
+                        if (!slide.classList.contains('visible')) {
+                            slide.classList.add('visible');
+                        }
+                        // Idempotent: only plays if not already marked played.
+                        this._playSlideReveals(slide);
+                        return;
+                    }
+
+                    const goingForward = idx > this.currentSlide;
+                    this.currentSlide = idx;
+                    this._updateNavDots();
+                    this._syncHash();
+
+                    slide.classList.add('visible');
+                    if (goingForward) {
+                        this._playSlideReveals(slide);
+                    } else {
+                        this._rewindSlide(slide);
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            this.viewports.forEach((viewport) => observer.observe(viewport));
+        }
+
+        /* ---------- Keyboard ---------- */
+        _setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                // Skip when user is editing text
+                if (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+                switch (e.key) {
+                    // Step-aware: consume steps first, then advance slides
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault(); this.advance(); break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault(); this.retreat(); break;
+                    // Slide-level: always skip past steps
+                    case 'PageDown':
+                        e.preventDefault(); this.next(); break;
+                    case 'PageUp':
+                        e.preventDefault(); this.prev(); break;
+                    case 'Home':
+                        e.preventDefault(); this.first(); break;
+                    case 'End':
+                        e.preventDefault(); this.last(); break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault(); this.toggleFullscreen(); break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault(); this.first(); break;
+                }
+            });
+        }
+
+        /* ---------- Wheel / trackpad ----------
+           ALWAYS preventDefault — letting any native wheel scroll through
+           races against scrollIntoView + mandatory snap, and blocks macOS
+           two-finger horizontal swipes from triggering browser back/forward.
+           Whichever axis has the larger magnitude wins, so vertical scroll
+           and horizontal trackpad swipes both drive advance/retreat. Lock
+           briefly after a gesture so trackpad inertia (continuous small
+           deltas) can't spam next(). */
+        _setupWheelNav() {
+            let locked = false;
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) return;                // preserve browser pinch-zoom (ctrl+wheel)
+                e.preventDefault();                   // block native scroll + horizontal back-swipe
+                if (locked) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (Math.abs(delta) < 20) return;     // ignore tiny flicks
+                locked = true;
+                if (delta > 0) this.advance(); else this.retreat();
+                setTimeout(() => { locked = false; }, 500);
+            }, { passive: false });
+        }
+
+        /* ---------- Touch / swipe ----------
+           Horizontal swipes advance / retreat slides; left = next, right =
+           prev (matches stories / carousel conventions). Dominantly
+           vertical swipes fall through to native scroll-snap so the
+           existing top/bottom behavior keeps working. A time budget
+           rejects slow pans that were really aborted scrolls. */
+        _setupTouchNav() {
+            const MIN_DISTANCE = 50;     // px — below this is a tap or jitter
+            const MAX_TIME = 600;        // ms — slower than this is a pan, not a swipe
+            const DOMINANCE = 1.2;       // horizontal must beat vertical by this factor
+
+            let startX = 0, startY = 0, startTime = 0;
+            let tracking = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('artifact-editor-editing')) { tracking = false; return; }
+                if (e.touches.length !== 1) { tracking = false; return; }
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                startTime = performance.now();
+                tracking = true;
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const ax = Math.abs(dx), ay = Math.abs(dy);
+                if (ax < MIN_DISTANCE) return;
+                if (ax < ay * DOMINANCE) return;
+                if (performance.now() - startTime > MAX_TIME) return;
+                if (dx < 0) this.advance(); else this.retreat();
+            }, { passive: true });
+
+            window.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+        }
+
+        /* ---------- Canvas scaling ----------
+           Each scaler holds a fixed 1920×1080 slide. Compute the
+           scale factor that fits it inside the viewport and apply via
+           CSS custom property. Runs on init, resize, and fullscreen. */
+        _setupCanvasScale() {
+            const CANVAS_W = 1920;
+            const CANVAS_H = 1080;
+            const scales = this.scales;
+
+            const update = () => {
+                const scale = Math.min(
+                    window.innerWidth / CANVAS_W,
+                    window.innerHeight / CANVAS_H
+                );
+                scales.forEach((el) => {
+                    el?.style.setProperty('--slide-scale', scale);
+                });
+            };
+
+            update();
+            window.addEventListener('resize', update);
+            document.addEventListener('fullscreenchange', () => {
+                requestAnimationFrame(update);
+            });
+        }
+
+        /* ---------- Viewport sync ----------
+           Resize / fullscreenchange → realign current slide. Each slide is
+           100vh, so a viewport height change leaves the existing scroll
+           position out of alignment with the slide top; scroll-snap doesn't
+           re-snap on its own. */
+        _setupViewportSync() {
+            const realign = () => {
+                requestAnimationFrame(() => {
+                    this._scrollToSlide(this.currentSlide, 'auto');
+                });
+            };
+            window.addEventListener('resize', realign);
+            document.addEventListener('fullscreenchange', realign);
+        }
+
+        /* ---------- Nav dots ---------- */
+        _buildNavDots() {
+            // Clear first — prevents duplicates when DOM is re-serialized/re-opened
+            this.navDotsContainer.innerHTML = '';
+            this.slides.forEach((slide, idx) => {
+                const dot = document.createElement('button');
+                dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+                if (idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.goTo(idx));
+                this.navDotsContainer.appendChild(dot);
+            });
+        }
+
+        _updateNavDots() {
+            const dots = this.navDotsContainer.querySelectorAll('button');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === this.currentSlide);
+            });
+        }
+    }
+
+    /* ---------- Auto-init ---------- */
+    function init() {
+        // Each slide canvas is its own editable host for the inline editor.
+        document.querySelectorAll('.slide').forEach(function (el) {
+            el.classList.add('artifact-editable');
+        });
+        window.slides = new SlidePresentation();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chassis -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engenharia da Computação: muito mais do que Frontend e Backend</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap">
+<style>
+  :root {
+    --paper:   #F2EEE8;
+    --ink:     #16130F;
+    --ink-2:   #211C17;
+    --orange:  #FF6A21;
+    --red:     #C4342A;
+    --sand:    #8A7E70;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --accent:     var(--orange);
+    --muted-foreground: color-mix(in srgb, var(--ink) 58%, transparent);
+    --border:     color-mix(in srgb, var(--ink) 14%, transparent);
+
+    --font-display: 'Sora', sans-serif;
+    --font-body:    'Manrope', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+    --nav-dot-color: color-mix(in srgb, var(--ink) 34%, transparent);
+    --nav-dot-active-color: var(--orange);
+  }
+
+  body { background: var(--ink); }
+
+  .slide {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    padding: 84px 96px 104px;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 0; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(1100px 700px at 100% 0%, color-mix(in srgb, var(--orange) 13%, transparent), transparent 66%),
+      radial-gradient(900px 620px at 0% 100%, color-mix(in srgb, var(--red) 8%, transparent), transparent 66%);
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ---------- slides escuros ---------- */
+  .dk { background: var(--ink); color: var(--paper); }
+  .dk::before {
+    background:
+      radial-gradient(1150px 720px at 6% 100%, color-mix(in srgb, var(--orange) 22%, transparent), transparent 66%),
+      radial-gradient(900px 620px at 96% 4%, color-mix(in srgb, var(--red) 20%, transparent), transparent 66%);
+  }
+  .dk h1, .dk h2, .dk h3 { color: var(--paper); }
+  .dk p { color: color-mix(in srgb, var(--paper) 68%, transparent); }
+  .dk strong { color: var(--paper); }
+  .dk .eyebrow { color: color-mix(in srgb, var(--paper) 62%, transparent); }
+  .dk .card { background: var(--ink-2); border-color: color-mix(in srgb, var(--paper) 14%, transparent); }
+  .dk .card p { color: color-mix(in srgb, var(--paper) 66%, transparent); }
+  .dk .chip { background: var(--ink-2); border-color: color-mix(in srgb, var(--paper) 15%, transparent); color: color-mix(in srgb, var(--paper) 82%, transparent); }
+  .dk .note { color: color-mix(in srgb, var(--paper) 40%, transparent); }
+  .dk .slot { background: var(--ink-2); }
+  .dk .stat .k { color: color-mix(in srgb, var(--paper) 60%, transparent); }
+  .dk .list li { color: color-mix(in srgb, var(--paper) 90%, transparent); }
+  .dk .eixo .dot { background: var(--ink); }
+  .dk .row .v { color: var(--paper); }
+  .dk .fl .box { background: var(--ink-2); border-color: color-mix(in srgb, var(--paper) 15%, transparent); }
+  .dk .fl .box p { color: color-mix(in srgb, var(--paper) 66%, transparent); }
+  .dk .fl .arw { color: color-mix(in srgb, var(--paper) 34%, transparent); }
+  .dk .src { color: color-mix(in srgb, var(--paper) 42%, transparent); }
+
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.032em; margin: 0; color: var(--ink); }
+  h1 { font-size: 116px; line-height: 1.0; font-weight: 800; }
+  h2 { font-size: 66px; line-height: 1.05; }
+  h3 { font-size: 34px; line-height: 1.15; }
+  p  { font-size: 34px; line-height: 1.42; margin: 0; color: var(--muted-foreground); max-width: 1150px; }
+  em { font-style: normal; color: var(--orange); }
+  strong { font-weight: 700; color: var(--ink); }
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 22px; font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--sand); display: block; margin-bottom: 22px;
+  }
+  .eyebrow .sl { color: var(--orange); }
+
+  .note {
+    position: absolute; bottom: 46px; left: 96px; z-index: 2;
+    font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--ink) 42%, transparent);
+  }
+  .src { font-family: var(--font-mono); font-size: 20px; letter-spacing: 0.05em; color: color-mix(in srgb, var(--ink) 45%, transparent); margin-top: 40px; }
+
+  /* ---------- capa ---------- */
+  .cover { justify-content: space-between; padding-bottom: 84px; }
+  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cover .title { max-width: 1500px; }
+  .cover .big {
+    display: block; font-family: var(--font-display); font-weight: 800;
+    font-size: 152px; line-height: 0.94; letter-spacing: -0.042em; color: var(--paper);
+  }
+  .cover .sub {
+    display: block; font-family: var(--font-display); font-weight: 600;
+    font-size: 60px; line-height: 1.16; letter-spacing: -0.02em;
+    color: color-mix(in srgb, var(--paper) 74%, transparent); margin-top: 34px;
+  }
+  .cover .sub em { color: var(--orange); }
+  .fair { text-align: right; font-family: var(--font-mono); }
+  .fair b { display: block; font-size: 25px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--paper); }
+  .fair span { display: block; font-size: 20px; letter-spacing: 0.14em; color: color-mix(in srgb, var(--paper) 50%, transparent); margin-top: 8px; }
+  .tag {
+    font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 11px 22px; border: 1px solid color-mix(in srgb, var(--orange) 60%, transparent);
+    border-radius: 999px; color: var(--orange);
+  }
+  .speaker { font-family: var(--font-display); font-size: 38px; font-weight: 700; color: var(--paper); }
+  .speaker span { display: block; font-family: var(--font-mono); font-size: 19px; font-weight: 400; letter-spacing: 0.13em; text-transform: uppercase; color: var(--orange); margin-top: 12px; }
+  .ring {
+    position: absolute; right: -280px; top: 50%; width: 820px; height: 820px;
+    transform: translateY(-50%); border-radius: 50%;
+    border: 2px solid color-mix(in srgb, var(--paper) 10%, transparent); z-index: 0;
+  }
+  .ring::after { content: ''; position: absolute; inset: 112px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--orange) 32%, transparent); }
+  .qubit { position: absolute; right: -280px; top: 50%; width: 820px; height: 820px; transform: translateY(-50%); z-index: 0; animation: spin 24s linear infinite; }
+  .qubit i { position: absolute; top: -9px; left: 50%; width: 18px; height: 18px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 38px 12px color-mix(in srgb, var(--orange) 48%, transparent); }
+  @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+  /* ---------- statement ---------- */
+  .st { align-items: flex-start; }
+  .st h1 { font-size: 136px; max-width: 1660px; }
+  .st.sm h1 { font-size: 100px; }
+  .kick { font-family: var(--font-display); font-weight: 600; font-size: 44px; color: var(--orange); max-width: 1500px; line-height: 1.2; }
+
+  /* ---------- fluxo do restaurante ---------- */
+  .fl { display: flex; align-items: stretch; gap: 20px; margin-top: 48px; }
+  .fl .box {
+    flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 18px;
+    padding: 30px 26px; display: flex; flex-direction: column; gap: 16px;
+  }
+  .fl .box.hi { border: 2px solid var(--orange); }
+  .fl .lbl { font-family: var(--font-mono); font-size: 17px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--orange); }
+  .fl .box h3 { font-size: 38px; }
+  .fl .box .an { font-size: 25px; font-weight: 700; color: var(--red); }
+  .dk .fl .box .an { color: var(--orange); }
+  .fl .box p { font-size: 24px; line-height: 1.36; max-width: none; }
+  .fl .arw { display: flex; align-items: center; font-size: 46px; color: color-mix(in srgb, var(--ink) 30%, transparent); font-family: var(--font-mono); }
+  .gl { width: 74px; height: 74px; position: relative; flex: none; }
+  .gl.scr { border: 4px solid var(--orange); border-radius: 8px; }
+  .gl.scr::after { content: ''; position: absolute; top: 12px; left: 0; right: 0; height: 4px; background: var(--orange); }
+  .gl.gear { border: 4px solid var(--orange); border-radius: 50%; }
+  .gl.gear::after { content: ''; position: absolute; inset: 20px; border: 4px solid var(--orange); border-radius: 50%; }
+  .gl.db { border: 4px solid var(--orange); border-radius: 50% / 22%; }
+  .gl.db::after { content: ''; position: absolute; left: -4px; right: -4px; top: 26px; height: 22px; border-top: 4px solid var(--orange); border-bottom: 4px solid var(--orange); border-radius: 50% / 60%; }
+
+  /* ---------- cards ---------- */
+  .cards { display: grid; gap: 20px; margin-top: 46px; }
+  .c5 { grid-template-columns: repeat(5, 1fr); }
+  .c4 { grid-template-columns: repeat(4, 1fr); }
+  .c3 { grid-template-columns: repeat(3, 1fr); }
+  .c2 { grid-template-columns: repeat(2, 1fr); }
+  .card {
+    background: #fff; border-radius: 16px; padding: 30px 26px;
+    border: 1px solid var(--border); border-top: 4px solid var(--sand);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .card .lbl { font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--sand); }
+  .card p { font-size: 23px; line-height: 1.36; max-width: none; }
+  .card .nc { font-size: 22px; line-height: 1.34; color: var(--red); margin-top: auto; font-weight: 600; }
+  .dk .card .nc { color: color-mix(in srgb, var(--orange) 90%, #fff); }
+  .card.o { border-top-color: var(--orange); } .card.o .lbl { color: var(--orange); }
+  .card.r { border-top-color: var(--red); }    .card.r .lbl { color: var(--red); }
+
+  /* ---------- eixo ---------- */
+  .eixo { margin-top: 64px; }
+  .eixo .bar { height: 7px; border-radius: 999px; background: linear-gradient(90deg, var(--orange), var(--red) 55%, var(--sand)); }
+  .eixo .stops { display: flex; justify-content: space-between; margin-top: -7px; }
+  .eixo .stop { display: flex; flex-direction: column; align-items: center; width: 205px; }
+  .eixo .dot { width: 21px; height: 21px; border-radius: 50%; background: var(--paper); border: 5px solid var(--orange); }
+  .eixo .stop span { margin-top: 18px; font-family: var(--font-mono); font-size: 20px; text-align: center; line-height: 1.3; }
+  .eixo-legend { display: flex; justify-content: space-between; margin-top: 52px; font-size: 26px; font-weight: 700; }
+  .eixo-legend .l { color: var(--orange); } .eixo-legend .r2 { color: var(--sand); }
+
+  /* ---------- chips ---------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 42px; max-width: 1680px; }
+  .chip { font-family: var(--font-mono); font-size: 24px; padding: 13px 22px; border-radius: 999px; background: #fff; border: 1px solid var(--border); }
+  .chip.hi { background: var(--orange); border-color: var(--orange); color: #1B0A00; font-weight: 700; }
+  .chip.hi2 { background: transparent; border-color: var(--orange); color: var(--orange); font-weight: 700; }
+
+  /* ---------- stats ---------- */
+  .stats { display: flex; gap: 88px; margin-top: 50px; }
+  .stats.tight { gap: 70px; }
+  .stat .v { font-family: var(--font-display); font-size: 140px; font-weight: 800; line-height: 0.86; letter-spacing: -0.055em; color: var(--orange); }
+  .stats.tight .stat .v { font-size: 124px; }
+  .stat.r .v { color: var(--red); }
+  .stat .k { font-family: var(--font-mono); font-size: 22px; line-height: 1.4; margin-top: 18px; color: var(--muted-foreground); max-width: 330px; }
+
+  /* ---------- list ---------- */
+  .list { display: flex; flex-direction: column; gap: 26px; margin-top: 40px; }
+  .list li { display: flex; gap: 24px; align-items: flex-start; font-size: 33px; line-height: 1.34; max-width: 1560px; }
+  .list .b { flex: none; width: 13px; height: 13px; border-radius: 50%; background: var(--orange); margin-top: 15px; }
+
+  /* ---------- timeline ---------- */
+  .tl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 52px; }
+  .tl .item { display: flex; flex-direction: column; gap: 14px; padding-top: 30px; position: relative; }
+  .tl .item::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 18%, transparent); }
+  .dk .tl .item::before { background: color-mix(in srgb, var(--paper) 20%, transparent); }
+  .tl .item.on::before { background: var(--orange); }
+  .tl .when { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.1em; color: var(--sand); }
+  .tl .item.on .when { color: var(--orange); }
+  .tl p { font-size: 23px; max-width: none; }
+
+  /* ---------- split ---------- */
+  .split { display: grid; gap: 74px; align-items: center; }
+  .split.p1 { grid-template-columns: 510px 1fr; }
+  .split.p2 { grid-template-columns: 800px 1fr; }
+  .rows { display: flex; flex-direction: column; gap: 24px; }
+  .row .k { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--orange); display: block; margin-bottom: 6px; }
+  .row .v { font-size: 32px; font-weight: 600; color: var(--ink); }
+
+  /* ---------- image slots ---------- */
+  .slot { position: relative; overflow: hidden; border-radius: 16px; background: #E6E0D7; display: flex; align-items: center; justify-content: center; }
+  .slot img { width: 100%; height: 100%; object-fit: cover; display: block; max-height: none; }
+  .slot .hint { display: none; font-family: var(--font-mono); font-size: 17px; letter-spacing: 0.09em; text-align: center; color: var(--sand); line-height: 1.7; padding: 16px; }
+  .slot.empty { border: 2px dashed color-mix(in srgb, var(--sand) 70%, transparent); }
+  .slot.empty .hint { display: block; }
+  .photo { width: 510px; height: 650px; }
+  .tcc { width: 800px; height: 520px; }
+  .dc { width: 560px; height: 420px; }
+  .split-divider { width: 1px; height: 420px; align-self: center; background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--ink) 22%, transparent) 15%, color-mix(in srgb, var(--ink) 22%, transparent) 85%, transparent); }
+  .logo-slot { width: 360px; height: 132px; background: #fff; border-radius: 10px; }
+  .logo-slot img { object-fit: contain; padding: 16px; }
+  .certs-row { display: flex; flex-direction: column; gap: 12px; }
+  .certs-grid { display: flex; flex-wrap: wrap; gap: 14px; }
+  .certs-grid .cert-badge { width: 104px; height: 104px; object-fit: contain; }
+  .certs-note { font-family: var(--font-mono); font-size: 18px; color: var(--sand); }
+
+  .gal { display: grid; gap: 22px; margin-top: 44px; }
+  .gal.g4 { grid-template-columns: repeat(4, 1fr); }
+  .gal.g3 { grid-template-columns: repeat(3, 1fr); }
+  .gal figure { display: flex; flex-direction: column; gap: 16px; }
+  .gal .ph { width: 100%; height: 380px; border-radius: 16px; }
+  .gal.g3 .ph { height: 400px; }
+  .gal figcaption b { display: block; font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  .gal figcaption span { display: block; font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange); margin-top: 6px; }
+  .dk .gal figcaption b { color: var(--paper); }
+
+  /* ---------- link destaque ---------- */
+  .lk { display: inline-flex; align-items: center; gap: 16px; margin-top: 42px; font-family: var(--font-mono); font-size: 26px; letter-spacing: 0.04em; color: var(--orange); border: 1px solid color-mix(in srgb, var(--orange) 55%, transparent); border-radius: 999px; padding: 16px 30px; text-decoration: none; }
+  .lk b { font-family: var(--font-body); font-weight: 700; color: inherit; }
+
+  /* ---------- QR ---------- */
+  .qrs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 44px; margin-top: 48px; }
+  .qr { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .qr .box { width: 270px; height: 270px; background: #fff; border-radius: 16px; }
+  .qr .box img { width: 100%; height: 100%; object-fit: contain; padding: 22px; box-sizing: border-box; }
+  .qr .cap { font-family: var(--font-mono); font-size: 21px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--paper); }
+  .qr .sub2 { font-size: 19px; color: color-mix(in srgb, var(--paper) 55%, transparent); margin-top: -10px; text-align: center; }
+
+  #dust { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.55; }
+</style>
+
+
+
+<canvas id="dust" width="1919" height="958"></canvas>
+
+<!-- 1 · CAPA -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk cover artifact-editable visible reveals-played" id="slide-1">
+  <div class="ring"></div>
+  <div class="qubit"><i></i></div>
+  <div class="cover-top">
+    <span class="tag reveal d1" style="">Computação · Engenharia · IA</span>
+    <div class="fair reveal d1" style=""><b>Feira de Profissões Franscarmo</b><span>19 de setembro de 2026</span></div>
+  </div>
+  <div class="title">
+    <span class="big reveal d2" style="">Engenharia<br>da Computação</span>
+    <span class="sub reveal d3" style="">muito mais do que <em>“frontend”</em> e <em>“backend”</em>.</span>
+  </div>
+  <div class="speaker reveal d5" style="">Vitor Guirão Soller<span>Eng. Computação · Instituto Mauá de Tecnologia</span></div>
+</section></div></div>
+
+<!-- 2 · PROVOCAÇÃO -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide st artifact-editable visible reveals-played" id="slide-2">
+  <h1 class="reveal d1" style="">Quem aqui acha<br>que programar é fazer<br><em>site e aplicativo?</em></h1>
+  <p class="kick step" style="margin-top: 54px; opacity: 0; transform: translateY(28px);">Então vamos começar do começo: o que são essas palavras?</p>
+  <span class="note">mão levantada · deixa no ar antes de avançar</span>
+</section></div></div>
+
+<!-- 3 · O RESTAURANTE -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-3">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> imagina que um sistema é um restaurante</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Frontend, backend e banco de dados</h2>
+  <div class="fl">
+    <div class="box hi reveal d3" style="opacity: 0; transform: translateY(28px);">
+      <div class="gl scr"></div>
+      <span class="lbl">frontend</span>
+      <h3>O salão</h3>
+      <p class="an">É o garçom e o menu.</p>
+      <p>Tudo o que você vê e toca: tela, botão, cor, o cardápio na sua mão.</p>
+    </div>
+    <div class="arw reveal d4" style="opacity: 0; transform: translateY(28px);">→</div>
+    <div class="box hi reveal d4" style="opacity: 0; transform: translateY(28px);">
+      <div class="gl gear"></div>
+      <span class="lbl">backend</span>
+      <h3>A cozinha</h3>
+      <p class="an">É quem cozinha o pedido.</p>
+      <p>Recebe o pedido, aplica as regras, faz a conta e devolve pronto. Ninguém vê.</p>
+    </div>
+    <div class="arw reveal d5" style="opacity: 0; transform: translateY(28px);">→</div>
+    <div class="box hi reveal d5" style="opacity: 0; transform: translateY(28px);">
+      <div class="gl db"></div>
+      <span class="lbl">banco de dados</span>
+      <h3>O estoque</h3>
+      <p class="an">É a despensa do restaurante.</p>
+      <p>Guarda tudo de forma organizada e devolve rápido quando a cozinha pede.</p>
+    </div>
+  </div>
+  <p class="reveal d7" style="margin-top: 44px; font-size: 30px; opacity: 0; transform: translateY(28px);"><strong>Agora a pergunta que interessa:</strong> quem construiu o prédio, a fiação e o fogão?</p>
+</section></div></div>
+
+<!-- 4 · QUEM SOU -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-4">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> quem tá falando</span>
+  <div class="split p1">
+    <div class="slot photo reveal-scale d2" style="opacity: 0; transform: scale(0.88);">
+      <img src="images/vitor-speaker.jpg" alt="Vitor Soller">
+    </div>
+    <div class="rows">
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Vitor Soller</h2>
+      <div class="row reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="k">formação</span><span class="v">Eng. da Computação, Mauá '25</span></div>
+      <div class="row reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="k">hoje</span><span class="v">Projetos + Infra AWS na Dati</span></div>
+      <div class="row reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="k">hobbies</span><span class="v">Escalada indoor e impressão 3D</span></div>
+      <div class="certs-row reveal d6" style="opacity: 0; transform: translateY(28px);">
+        <span class="k">certificações</span>
+        <div class="certs-grid">
+          <img class="cert-badge" src="images/01-ccp-cloud-practitioner.png" alt="AWS Certified Cloud Practitioner">
+          <img class="cert-badge" src="images/02-aip-ai-practitioner.png" alt="AWS Certified AI Practitioner">
+          <img class="cert-badge" src="images/03-saa-solutions-architect-associate.png" alt="AWS Certified Solutions Architect – Associate">
+          <img class="cert-badge" src="images/04-dva-developer-associate.png" alt="AWS Certified Developer – Associate">
+          <img class="cert-badge" src="images/05-sap-solutions-architect-professional.png" alt="AWS Certified Solutions Architect – Professional">
+          <img class="cert-badge" src="images/06-scs-security-specialty.png" alt="AWS Certified Security – Specialty">
+        </div>
+        <span class="certs-note">+ Qiskit Advocate (IBM)</span>
+      </div>
+      <div class="slot logo-slot reveal d7" style="opacity: 0; transform: translateY(28px);">
+        <img src="images/maua-logo.svg" alt="Instituto Mauá de Tecnologia">
+      </div>
+    </div>
+  </div>
+  <span class="note">e eu sentei nessa mesma cadeira aqui, alguns anos atrás</span>
+</section></div></div>
+
+<!-- 5 · TRAJETÓRIA -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-5">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> spoiler do final</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Eu mudei de área <em>três vezes</em> em cinco anos.</h2>
+  <div class="tl">
+    <div class="item reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="when">2021 — 2025</span><h3>Grupo acadêmico</h3><p>Dev. Community Mauá: entrei voluntário, saí presidente.</p></div>
+    <div class="item reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="when">2023 — 2025</span><h3>Produto · Claro</h3><p>Regras de negócio do Claro Flex, com UX, dev e logística.</p></div>
+    <div class="item reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="when">2025 — 2026</span><h3>Projetos · Dati</h3><p>Prazo, risco e a ponte entre cliente e time técnico.</p></div>
+    <div class="item on reveal d6" style="opacity: 0; transform: translateY(28px);"><span class="when">hoje</span><h3>Infra e arquitetura AWS</h3><p>Entrega técnica em nuvem. Nada disso era “o plano”.</p></div>
+  </div>
+  <span class="note">a formação te dá uma base, não um cargo pra vida</span>
+</section></div></div>
+
+<!-- 6 · TCC -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-6">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> meu tcc: um computador quântico simulado</span>
+  <div class="split p2">
+    <div class="slot tcc reveal-scale d2" style="opacity: 0; transform: scale(0.88);">
+      <img src="images/tcc-raspberry.jpg" alt="Banca de defesa do TCC: Introdução prática à computação quântica com Raspberry Pi">
+    </div>
+    <div class="rows">
+      <h2 class="reveal d3" style="opacity: 0; transform: translateY(28px);">Raspberry Pi,<br>fita de LED e<br>álgebra linear.</h2>
+      <p class="reveal d4" style="opacity: 0; transform: translateY(28px);">O primeiro TCC de Computação Quântica da história do Mauá. LED controlado por porta lógica quântica, com hardware real da IBM.</p>
+      <p class="reveal d5" style="font-size: 28px; opacity: 0; transform: translateY(28px);"><strong>Não tem salão, nem cozinha, nem estoque.</strong> E é engenharia da computação do começo ao fim.</p>
+    </div>
+  </div>
+</section></div></div>
+
+<!-- 7 · GALERIA DE PROJETOS -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-7">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> coisas que eu construí na faculdade</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Nenhuma delas era “um site”</h2>
+  <div class="gal g4">
+    <figure class="reveal d3" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph"><img src="images/projeto-dartcannon.jpg" alt="Canhão de bolinhas com reconhecimento facial (DartCannon)"></div>
+      <figcaption><b>Canhão com reconhecimento facial</b><span>Raspberry · impressão 3D · IA</span></figcaption>
+    </figure>
+    <figure class="reveal d4" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO<br>projeto-2.jpg</span></div>
+      <figcaption><b>Bot que me ensina alemão</b><span>Nuvem · custo quase zero</span></figcaption>
+    </figure>
+    <figure class="reveal d5" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph"><img src="images/projeto-battlesnake.jpg" alt="Diagrama da API serverless em Python e FastAPI para o campeonato Battlesnake" style="object-fit: contain; background: #fff; padding: 20px; box-sizing: border-box;"></div>
+      <figcaption><b>Campeonato de IA</b><span>Backend serverless que eu montei</span></figcaption>
+    </figure>
+    <figure class="reveal d6" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph"><img src="images/projeto-dev-in-the-dark.webp" alt="Evento Dev In The Dark: competição de frontend às cegas"></div>
+      <figcaption><b>Dev In The Dark</b><span>Infra que publica o site vencedor ao vivo</span></figcaption>
+    </figure>
+  </div>
+  <span class="note">tudo começou com curiosidade, não com aula</span>
+</section></div></div>
+
+<!-- 8 · VIDA UNIVERSITÁRIA -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-8">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> a parte que ninguém coloca no slide</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Engenharia não é só sofrer <em>(juro)</em></h2>
+  <div class="gal g4">
+    <figure class="reveal d3" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO<br>vida-1.jpg</span></div>
+      <figcaption><b>Rolê com a turma</b><span>Sofrer junto vira amizade</span></figcaption>
+    </figure>
+    <figure class="reveal d4" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO<br>vida-2.jpg</span></div>
+      <figcaption><b>Festa</b><span>Existe vida entre as provas</span></figcaption>
+    </figure>
+    <figure class="reveal d5" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO<br>vida-3.jpg</span></div>
+      <figcaption><b>Escalada indoor</b><span>Meu jeito de desligar</span></figcaption>
+    </figure>
+    <figure class="reveal d6" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO<br>vida-4.jpg</span></div>
+      <figcaption><b>Impressora 3D</b><span>Hobby que virou peça de projeto</span></figcaption>
+    </figure>
+  </div>
+  <span class="note">as pessoas que você conhece ali ficam pra vida (e te indicam pra vaga)</span>
+</section></div></div>
+
+<!-- 9 · O EIXO -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-9">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> esquece o nome do curso, olha onde ele te coloca</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Do elétron até a pessoa</h2>
+  <div class="eixo reveal d3" style="opacity: 0; transform: translateY(28px);">
+    <div class="bar"></div>
+    <div class="stops">
+      <div class="stop"><span class="dot"></span><span>elétron</span></div>
+      <div class="stop"><span class="dot"></span><span>transistor</span></div>
+      <div class="stop"><span class="dot"></span><span>chip</span></div>
+      <div class="stop"><span class="dot"></span><span>sistema<br>operacional</span></div>
+      <div class="stop"><span class="dot"></span><span>software</span></div>
+      <div class="stop"><span class="dot"></span><span>dado</span></div>
+      <div class="stop"><span class="dot"></span><span>produto</span></div>
+      <div class="stop"><span class="dot"></span><span>pessoa</span></div>
+    </div>
+  </div>
+  <div class="eixo-legend">
+    <div class="l reveal d5" style="opacity: 0; transform: translateY(28px);">← mais física e matemática</div>
+    <div class="r2 reveal d5" style="opacity: 0; transform: translateY(28px);">mais negócio e gente →</div>
+  </div>
+  <span class="note">frontend, backend e banco de dados moram em três pontinhos desse eixo</span>
+</section></div></div>
+
+<!-- 10 · OS CURSOS -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-10">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> onde cada curso vive nesse eixo</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Cinco formações, um mercado</h2>
+  <div class="cards c5">
+    <div class="card o reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="lbl">elétron → sistema</span><h3>Eng. da Computação</h3><p>Hardware <em>e</em> software. 5 anos, com ciclo básico de engenharia.</p></div>
+    <div class="card reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="lbl">o porquê</span><h3>Ciência da Computação</h3><p>Teoria: algoritmo, complexidade, compilador, IA de raiz.</p></div>
+    <div class="card reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="lbl">processo</span><h3>Eng. de Software</h3><p>Como construir software grande sem ele desabar.</p></div>
+    <div class="card reveal d6" style="opacity: 0; transform: translateY(28px);"><span class="lbl">negócio</span><h3>Sistemas de Informação</h3><p>Software como ferramenta de empresa e de processo.</p></div>
+    <div class="card r reveal d7" style="opacity: 0; transform: translateY(28px);"><span class="lbl">dado → decisão</span><h3>Ciência de Dados</h3><p>Transformar dado bruto em decisão que vale dinheiro.</p></div>
+  </div>
+  <span class="note">nenhum é melhor: muda onde você começa e o que dói menos no caminho</span>
+</section></div></div>
+
+<!-- 11 · A GRADE -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-11">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> a grade real · eng. computação, instituto mauá</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Isso aqui é um curso de computação</h2>
+  <div class="chips">
+    <span class="chip reveal d3" style="opacity: 0; transform: translateY(28px);">cálculo</span>
+    <span class="chip reveal d3" style="opacity: 0; transform: translateY(28px);">física</span>
+    <span class="chip reveal d3" style="opacity: 0; transform: translateY(28px);">química</span>
+    <span class="chip reveal d4" style="opacity: 0; transform: translateY(28px);">eletrônica</span>
+    <span class="chip reveal d4" style="opacity: 0; transform: translateY(28px);">sistemas digitais</span>
+    <span class="chip reveal d4" style="opacity: 0; transform: translateY(28px);">microcontroladores</span>
+    <span class="chip hi2 reveal d5" style="opacity: 0; transform: translateY(28px);">arquitetura de computadores</span>
+    <span class="chip reveal d5" style="opacity: 0; transform: translateY(28px);">sistemas operacionais</span>
+    <span class="chip reveal d5" style="opacity: 0; transform: translateY(28px);">algoritmos</span>
+    <span class="chip reveal d6" style="opacity: 0; transform: translateY(28px);">banco de dados</span>
+    <span class="chip reveal d6" style="opacity: 0; transform: translateY(28px);">redes</span>
+    <span class="chip reveal d6" style="opacity: 0; transform: translateY(28px);">segurança da informação</span>
+    <span class="chip hi2 reveal d7" style="opacity: 0; transform: translateY(28px);">inteligência artificial</span>
+    <span class="chip reveal d7" style="opacity: 0; transform: translateY(28px);">otimização</span>
+    <span class="chip reveal d7" style="opacity: 0; transform: translateY(28px);">sistemas embarcados</span>
+    <span class="chip hi reveal d8" style="opacity: 0; transform: translateY(28px);">instalações elétricas e fontes renováveis</span>
+    <span class="chip reveal d8" style="opacity: 0; transform: translateY(28px);">modelos de negócio em TI</span>
+  </div>
+  <p class="reveal d8" style="margin-top: 42px; font-size: 30px; opacity: 0; transform: translateY(28px);">Tem semestre em que você não escreve uma linha de código. E por que estudar <em>carga elétrica?</em> Guarda essa pergunta.</p>
+</section></div></div>
+
+<!-- 12 · A VERDADE -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-12">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> combinado honesto</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">A parte que a feira de profissões não conta</h2>
+  <div class="stats">
+    <div class="stat reveal d3" style="opacity: 0; transform: translateY(28px);"><div class="v">5</div><div class="k">anos de curso, período integral</div></div>
+    <div class="stat r reveal d4" style="opacity: 0; transform: translateY(28px);"><div class="v">26h</div><div class="k">de aula por semana, sem contar estudo em casa</div></div>
+    <div class="stat reveal d5" style="opacity: 0; transform: translateY(28px);"><div class="v">2</div><div class="k">anos em que você vai querer desistir. Quase todo mundo quer.</div></div>
+  </div>
+  <p class="reveal d6" style="margin-top: 50px; opacity: 0; transform: translateY(28px);">E é exatamente essa base chata que te deixa resolver depois o que os outros não conseguem.</p>
+</section></div></div>
+
+<!-- 13 · AMIGOS · FOTOS -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-13">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> minha turma, cinco anos depois</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Mesma sala. <em>Caminhos bem diferentes.</em></h2>
+  <div class="gal g3">
+    <figure class="reveal d3" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO COM AMIGOS<br>amigos-1.jpg</span></div>
+      <figcaption><b>Turma de Eng. Computação</b><span>Mauá · 2021 a 2025</span></figcaption>
+    </figure>
+    <figure class="reveal d4" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO COM AMIGOS<br>amigos-2.jpg</span></div>
+      <figcaption><b>Grupo acadêmico</b><span>Dev. Community Mauá</span></figcaption>
+    </figure>
+    <figure class="reveal d5" style="opacity: 0; transform: translateY(28px);">
+      <div class="slot ph empty"><span class="hint">FOTO COM AMIGOS<br>amigos-3.jpg</span></div>
+      <figcaption><b>Formatura</b><span>Cada um foi pra um lado</span></figcaption>
+    </figure>
+  </div>
+</section></div></div>
+
+<!-- 14 · DESTINOS A -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-14">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> parte 1 · constrói o software e sustenta o que roda</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Possibilidades <em>bem diversas</em></h2>
+  <div class="cards c5">
+    <div class="card reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="lbl">desenvolvimento</span><h3>Dev</h3><p>Traduz problema humano em código.</p><p class="nc">70% do tempo é ler código dos outros, não digitar.</p></div>
+    <div class="card o reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="lbl">inteligência artificial</span><h3>IA / ML</h3><p>Treina e coloca modelo em produção.</p><p class="nc">Quase tudo é limpar dado. O modelo é a parte fácil.</p></div>
+    <div class="card reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="lbl">infraestrutura</span><h3>Redes</h3><p>Faz o pacote sair daqui e chegar lá.</p><p class="nc">Quando funciona, ninguém lembra que você existe.</p></div>
+    <div class="card o reveal d6" style="opacity: 0; transform: translateY(28px);"><span class="lbl">cloud</span><h3>Nuvem</h3><p>Projeta e opera a infra onde tudo vive.</p><p class="nc">Paga muito sem exigir que você seja gênio em código.</p></div>
+    <div class="card r reveal d7" style="opacity: 0; transform: translateY(28px);"><span class="lbl">segurança</span><h3>Cibersegurança</h3><p>Ataca e defende sistemas de verdade.</p><p class="nc">Dá pra entrar júnior, sim — com bastante estudo extra.</p></div>
+  </div>
+</section></div></div>
+
+<!-- 15 · DESTINOS B -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-15">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> parte 2 · traduz negócio em tecnologia e extrai valor do dado</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">E nenhum deles faz <em>“só frontend”</em></h2>
+  <div class="cards c4">
+    <div class="card reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="lbl">produto</span><h3>PO / Scrum</h3><p>Decide o que entra no próximo mês e o que fica de fora. Passei por isso na Claro.</p><p class="nc">Você diz “não” o dia inteiro.</p></div>
+    <div class="card o reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="lbl">projetos</span><h3>Gestão de Projetos</h3><p>Prazo, risco e a ponte entre cliente e time técnico. É o que eu faço hoje.</p><p class="nc">Sem base técnica, o time não te respeita.</p></div>
+    <div class="card reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="lbl">financeiro</span><h3>Banco / Fintech</h3><p>Sistema onde 1 centavo errado vira processo judicial.</p><p class="nc">Paga muito bem e cobra na mesma medida.</p></div>
+    <div class="card o reveal d6" style="opacity: 0; transform: translateY(28px);"><span class="lbl">dados</span><h3>Dados</h3><p>Constrói o caminho do dado até virar decisão de diretoria.</p><p class="nc">Metade do trabalho é descobrir que o dado está errado.</p></div>
+  </div>
+</section></div></div>
+
+<!-- 16 · DEV COMMUNITY -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-16">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> dev. community mauá · grupo acadêmico</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">A faculdade acontece <em>fora da sala</em> também</h2>
+  <ul class="list">
+    <li class="reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="b"></span><div>Quatro anos de voluntariado: entrei sem saber nada e saí <strong>presidente</strong>.</div></li>
+    <li class="reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="b"></span><div>Projetos com usuário de verdade, campeonatos, masterclasses, eventos.</div></li>
+    <li class="reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="b"></span><div>Aprendi ali o que nenhuma matéria ensina: <em>falar com cliente, liderar time, entregar no prazo.</em></div></li>
+    <li class="reveal d6" style="opacity: 0; transform: translateY(28px);"><span class="b"></span><div>Foi isso, e não a minha nota, que me deu o primeiro estágio.</div></li>
+  </ul>
+  <span class="note">grupo acadêmico, liga, iniciação científica: não é enfeite de currículo</span>
+</section></div></div>
+
+<!-- 17 · O MERCADO · GARTNER -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-17">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> o tamanho do jogo · área de estudo: nuvem</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Quanto dinheiro está em cima disso</h2>
+  <div class="stats tight">
+    <div class="stat reveal d3" style="opacity: 0; transform: translateY(28px);"><div class="v">$850B</div><div class="k">gastos com nuvem pública em 2026</div></div>
+    <div class="stat reveal d4" style="opacity: 0; transform: translateY(28px);"><div class="v">+21%</div><div class="k">de crescimento ano sobre ano</div></div>
+    <div class="stat reveal d5" style="opacity: 0; transform: translateY(28px);"><div class="v">$1,4T</div><div class="k">projeção até 2029</div></div>
+  </div>
+  <p class="reveal d6" style="margin-top: 44px; font-size: 32px; opacity: 0; transform: translateY(28px);">O Gartner chama a corrida de nuvem e IA de <em>“o maior projeto de infraestrutura já tentado pela humanidade”.</em></p>
+  <div class="src reveal d7" style="opacity: 0; transform: translateY(28px);">Fonte: Gartner, 2026</div>
+</section></div></div>
+
+<!-- 18 · NUVEM -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-18">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> comparação com a AWS</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">O “servidor” é <em>um prédio</em></h2>
+  <div class="split p2" style="grid-template-columns: 560px 1px 1fr; gap: 40px;">
+    <div class="slot dc reveal-scale d3" style="opacity: 0; transform: scale(0.88);">
+      <img src="images/datacenter.jpg" alt="Corredor de servidores em um datacenter">
+    </div>
+    <div class="split-divider reveal d3" style="opacity: 0; transform: translateY(28px);"></div>
+    <div class="rows">
+      <div class="stats tight" style="margin-top: 0; gap: 40px;">
+        <div class="stat reveal d4" style="opacity: 0; transform: translateY(28px);"><div class="v">200+</div><div class="k">serviços na AWS, de banco de dados a satélite</div></div>
+        <div class="stat r reveal d5" style="opacity: 0; transform: translateY(28px);"><div class="v">33</div><div class="k">regiões, ligadas por cabo no fundo do oceano</div></div>
+        <div class="stat reveal d6" style="opacity: 0; transform: translateY(28px);"><div class="v">2min</div><div class="k">é o que você leva pra subir sua infra lá dentro, do seu quarto</div></div>
+      </div>
+      <p class="reveal d7" style="margin-top: 28px; font-size: 28px; opacity: 0; transform: translateY(28px);">Resfriamento, carga elétrica, energia renovável. <strong>Ainda acha que eletricidade não tem a ver com computação?</strong></p>
+    </div>
+  </div>
+  <div class="src reveal d8" style="opacity: 0; transform: translateY(28px);">Foto: BalticServers.com (Wikimedia Commons, CC BY-SA 3.0)</div>
+  <span class="note">é isso que deixa dois adolescentes competirem com uma multinacional</span>
+</section></div></div>
+
+<!-- 19 · IA = 3 COISAS -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-19">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> desmistificando</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">IA não é mágica. É a soma de três coisas.</h2>
+  <div class="cards c3">
+    <div class="card reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="lbl">01</span><h3>Matemática</h3><p>Álgebra linear e estatística. A mesma matéria que roda no meu TCC.</p></div>
+    <div class="card o reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="lbl">02</span><h3>Dado</h3><p>Muito, limpo e bem rotulado. É onde 80% do trabalho real acontece.</p></div>
+    <div class="card o reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="lbl">03</span><h3>Hardware</h3><p>GPU, memória, rede e energia. Caro, escasso e disputado.</p></div>
+  </div>
+  <p class="reveal d6" style="margin-top: 44px; opacity: 0; transform: translateY(28px);">Um modelo de linguagem está <strong>prevendo o próximo pedaço de palavra</strong>. Ele não pensa, não sabe e não quer nada.</p>
+</section></div></div>
+
+<!-- 20 · HARDWARE -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide st sm artifact-editable" id="slide-20">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> o ponto mais importante da palestra</span>
+  <h1 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Todo mundo fala do modelo.<br>Mas o gargalo é <em>GPU,<br>memória e energia.</em></h1>
+  <p class="reveal d4" style="margin-top: 46px; opacity: 0; transform: translateY(28px);">A corrida da IA devolveu o protagonismo pro <strong>hardware</strong>. Que é justamente o que a Engenharia da Computação estuda desde o primeiro semestre.</p>
+</section></div></div>
+
+<!-- 21 · USAR VS CONSTRUIR -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-21">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> escolha de carreira</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Tem quem <em>usa</em> IA e tem quem <em>constrói</em> IA</h2>
+  <div class="cards c2">
+    <div class="card reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="lbl">commodity</span><h3 style="font-size:44px">Usar</h3><p style="font-size:28px">Prompt, ferramenta, atalho. Em cinco anos todo mundo vai saber, inclusive o seu tio.</p><p class="nc" style="font-size:26px">Não é diferencial. É o novo Excel.</p></div>
+    <div class="card o reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="lbl">carreira</span><h3 style="font-size:44px">Construir e sustentar</h3><p style="font-size:28px">Dado, infra, custo, avaliação, segurança do modelo, o que fazer quando ele erra.</p><p class="nc" style="font-size:26px">Aqui falta gente, e é onde está o dinheiro.</p></div>
+  </div>
+  <span class="note">colar código gerado sem entender é o jeito mais rápido de ficar substituível</span>
+</section></div></div>
+
+<!-- 22 · A PERGUNTA -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide st artifact-editable" id="slide-22">
+  <h1 class="reveal-scale d1" style="opacity: 0; transform: scale(0.88);">“A IA vai roubar<br>o meu emprego?”</h1>
+  <p class="kick reveal d3" style="margin-top: 50px; opacity: 0; transform: translateY(28px);">Vamos falar disso agora, de frente.</p>
+</section></div></div>
+
+<!-- 23 · O QUE MUDA NA CARREIRA -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-23">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> e por que vale investir nisso</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">O que acontece com quem se especializa</h2>
+  <div class="stats tight">
+    <div class="stat reveal d3" style="opacity: 0; transform: translateY(28px);"><div class="v">74%</div><div class="k">tiveram aumento de salário</div></div>
+    <div class="stat reveal d4" style="opacity: 0; transform: translateY(28px);"><div class="v">83%</div><div class="k">sentiram mais segurança no emprego</div></div>
+    <div class="stat reveal d5" style="opacity: 0; transform: translateY(28px);"><div class="v">90%</div><div class="k">foram escolhidos para projetos especiais</div></div>
+  </div>
+  <p class="reveal d6" style="margin-top: 44px; opacity: 0; transform: translateY(28px);">Pesquisa com profissionais certificados em nuvem. <strong>Não é sorte, é escassez de gente qualificada.</strong></p>
+  <div class="src reveal d7" style="opacity: 0; transform: translateY(28px);">Fonte: ESG / AWS — “Training and Certification Help Learners Thrive in a Cloud-first World”</div>
+</section></div></div>
+
+<!-- 24 · AMANHÃ -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(242, 238, 232);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide artifact-editable" id="slide-24">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> sem esperar o vestibular</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Quatro coisas que dá pra fazer <em>amanhã</em></h2>
+  <div class="cards c4">
+    <div class="card reveal d3" style="opacity: 0; transform: translateY(28px);"><span class="lbl">r$ 40</span><h3>ESP32</h3><p>Uma placa do tamanho de um chiclete. Wi-Fi, sensor, LED. Hardware de verdade.</p></div>
+    <div class="card o reveal d4" style="opacity: 0; transform: translateY(28px);"><span class="lbl">grátis · 12 meses</span><h3>AWS Free Tier</h3><p>Sobe um servidor hoje e paga zero. A mesma nuvem que a Netflix usa.</p></div>
+    <div class="card reveal d5" style="opacity: 0; transform: translateY(28px);"><span class="lbl">antes de formar</span><h3>Certificação</h3><p>Tirei a primeira AWS ainda na faculdade. Dá pra estudar em 4 semanas.</p></div>
+    <div class="card r reveal d6" style="opacity: 0; transform: translateY(28px);"><span class="lbl">o melhor de todos</span><h3>Um problema seu</h3><p>Resolve algo chato da sua casa ou da escola com código. Vale mais que curso.</p></div>
+  </div>
+  <a class="lk reveal d7" href="https://maua.br/graduacao/engenharia-computacao" style="opacity: 0; transform: translateY(28px);">maua.br/graduacao/engenharia-computacao &nbsp;<b>← a grade completa do curso</b></a>
+</section></div></div>
+
+<!-- 25 · FECHAMENTO -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk st artifact-editable" id="slide-25">
+  <h1 class="reveal-scale d1" style="opacity: 0; transform: scale(0.88);">Aos 17 você não<br>escolhe um cargo.<br><em>Escolhe uma base.</em></h1>
+  <p class="kick reveal d3" style="margin-top: 48px; opacity: 0; transform: translateY(28px);">E ela te leva muito mais longe do que você imagina.</p>
+</section></div></div>
+
+<!-- 26 · QR -->
+<div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(22, 19, 15);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide dk artifact-editable" id="slide-26">
+  <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);"><span class="sl">//</span> obrigado, franscarmo · aponta a câmera</span>
+  <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Qualquer dúvida, me chama</h2>
+  <div class="qrs">
+    <div class="qr reveal d3" style="opacity: 0; transform: translateY(28px);">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://www.linkedin.com/in/vitor-soller/" alt="QR code para o LinkedIn"></div>
+      <span class="cap">LinkedIn</span><span class="sub2">in/vitor-soller</span>
+    </div>
+    <div class="qr reveal d4" style="opacity: 0; transform: translateY(28px);">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://wa.me/5511991758098?text=Oi%2C%20Vitor%21%20Quero%20conhecer%20mais%20sobre%20engenharia%20da%20computa%C3%A7%C3%A3o%2C%20vamos%20conversar%3F" alt="QR code para conversar no WhatsApp com o Vitor"></div>
+      <span class="cap">WhatsApp</span><span class="sub2">vamos conversar?</span>
+    </div>
+    <div class="qr reveal d5" style="opacity: 0; transform: translateY(28px);">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://vsoller.com.br" alt="QR code para o portfólio"></div>
+      <span class="cap">Portfólio</span><span class="sub2">vsoller.com.br</span>
+    </div>
+    <div class="qr reveal d6" style="opacity: 0; transform: translateY(28px);">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://maua.br/graduacao/engenharia-computacao" alt="QR code para a página do curso no Instituto Mauá"></div>
+      <span class="cap">O curso</span><span class="sub2">Eng. Computação<br>Instituto Mauá</span>
+    </div>
+  </div>
+  <span class="note">Vitor Guirão Soller · Eng. Computação Mauá '25</span>
+</section></div></div>
+
+<div class="keyboard-hint">← → navegar · R início · F tela cheia</div>
+
+<script data-activated="true">
+(function () {
+  var c = document.getElementById('dust');
+  var ctx = c.getContext('2d');
+  var P = [], N = 68;
+  function size() { c.width = innerWidth; c.height = innerHeight; }
+  size();
+  addEventListener('resize', size);
+  for (var i = 0; i < N; i++) {
+    P.push({
+      x: Math.random() * c.width,
+      y: Math.random() * c.height,
+      r: Math.random() * 1.7 + 0.6,
+      vy: -(Math.random() * 0.09 + 0.03),
+      vx: (Math.random() - 0.5) * 0.06,
+      a: Math.random() * Math.PI * 2,
+      t: Math.random() * 0.12 + 0.05
+    });
+  }
+  function tick() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (var i = 0; i < P.length; i++) {
+      var p = P[i];
+      p.a += 0.008;
+      p.y += p.vy;
+      p.x += p.vx + Math.sin(p.a) * 0.13;
+      if (p.y < -10) { p.y = c.height + 10; p.x = Math.random() * c.width; }
+      var alpha = p.t * (0.6 + 0.4 * Math.sin(p.a * 1.7));
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 106, 33, ' + alpha + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+
+
+</div><!----><!----></cu-root><nav id="navDots" class="nav-dots" aria-label="Slide navigation"><button aria-label="Go to slide 1" class="active"></button><button aria-label="Go to slide 2" class=""></button><button aria-label="Go to slide 3"></button><button aria-label="Go to slide 4"></button><button aria-label="Go to slide 5"></button><button aria-label="Go to slide 6"></button><button aria-label="Go to slide 7"></button><button aria-label="Go to slide 8"></button><button aria-label="Go to slide 9"></button><button aria-label="Go to slide 10"></button><button aria-label="Go to slide 11"></button><button aria-label="Go to slide 12"></button><button aria-label="Go to slide 13"></button><button aria-label="Go to slide 14"></button><button aria-label="Go to slide 15"></button><button aria-label="Go to slide 16"></button><button aria-label="Go to slide 17"></button><button aria-label="Go to slide 18"></button><button aria-label="Go to slide 19"></button><button aria-label="Go to slide 20"></button><button aria-label="Go to slide 21"></button><button aria-label="Go to slide 22"></button><button aria-label="Go to slide 23"></button><button aria-label="Go to slide 24"></button><button aria-label="Go to slide 25"></button><button aria-label="Go to slide 26"></button></nav><div class="chassis-credit" aria-hidden="true">💜 by ClickUp Brain</div><div class="chassis-cursor" aria-hidden="true" style="transform: translate3d(1198px, 941px, 0px);"></div></body></html>

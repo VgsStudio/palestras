@@ -1,0 +1,1434 @@
+<html lang="en-US" dir="ltr" class="reveals-ready"><head><meta charset="utf-8"><base href="."><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><link rel="icon" type="image/png" href="https://app-cdn.clickup.com/assets/favicons/favicon-16x16.png" sizes="16x16"><link rel="icon" type="image/png" href="https://app-cdn.clickup.com/assets/favicons/favicon-32x32.png" sizes="32x32"><style>.cu-embedded-html__container[_ngcontent-ng-c94272347]{display:flow-root;width:100%}</style></head><body data-git-sha="c0cd57df579d61a80426ffe15198827282d5b325" data-build-version="4.16.3" data-build-time="2026-07-30T23:50:43.244Z" class="chassis-cursor-active"><cu-root ng-version="21.2.17" _nghost-ng-c94272347=""><div _ngcontent-ng-c94272347="" class="cu-embedded-html__container">
+
+  
+<!-- skill:chassis -->
+<style>
+/* =====================================================
+   PRESENTATION CHASSIS — style-invariant base styles
+   Fixed 1920×1080 canvas scaled to fit any viewport.
+   Customize colors, fonts, and chrome via :root tokens.
+   ===================================================== */
+
+/* ---------- Universal reset ---------- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Theme tokens (override in your deck's CSS) ---------- */
+:root {
+    color-scheme: light;
+
+    --background:      #ffffff;
+    --foreground:      #111111;
+    --card:            #f5f5f5;
+    --card-foreground: var(--foreground);
+    --accent:          #c94a3d;
+    --accent-foreground: #ffffff;
+
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --border:           color-mix(in srgb, var(--foreground) 12%, transparent);
+
+    --font-display: Georgia, serif;
+    --font-body: -apple-system, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Reveal animation */
+    --reveal-duration: 0.8s;
+    --reveal-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-distance: 28px;
+
+    /* Chrome (nav dots, keyboard hint) */
+    --nav-dot-size: 9px;
+    --nav-dot-radius: 50%;
+    --nav-dot-color: var(--foreground);
+    --nav-dot-active-color: var(--accent);
+    --nav-dot-opacity: 0.4;
+}
+
+/* ---------- Viewport lock + scroll snap ---------- */
+html, body { height: 100%; overflow-x: hidden; }
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* ---------- Type scale ----------
+   Fixed px sizes on a 1920×1080 canvas. The canvas is scaled to fit
+   any viewport via transform, so these sizes are absolute within the
+   design surface — no responsive units needed. */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 36px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 120px; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -0.01em; }
+h3 { font-size: 44px; line-height: 1.2; }
+.eyebrow {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+ul, ol { padding-left: 48px; display: flex; flex-direction: column; gap: 24px; }
+li::marker { color: var(--accent); }
+
+/* ---------- Slide structure ----------
+   .slide is the authored 1920×1080 artboard.
+   The chassis wraps it in viewport + scale layers at runtime. */
+.slide-viewport {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: block;
+    position: relative;
+    background: var(--background);
+    isolation: isolate;
+    z-index: 1;
+}
+
+.slide-scale {
+    width: 1920px;
+    height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+    transform-origin: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+}
+
+.slide {
+    width: 1920px;
+    height: 1080px;
+    padding: 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    background: transparent;
+}
+
+
+/* ---------- Image defaults ---------- */
+img, .image-container {
+    max-width: 100%;
+    max-height: 540px;
+    object-fit: contain;
+}
+
+/* ---------- Reveal primitives ----------
+   Driven by chassis.js via the Web Animations API, not CSS transitions.
+   Put .reveal* or .step on ANY element — author CSS on the same element
+   (opacity, transform, transition, filter) never conflicts, because
+   WAAPI animations live in the animation cascade origin and win over
+   normal author declarations. The .dN stagger classes below still apply
+   to theme-authored CSS animations via animation-delay.
+
+   Variants: .reveal (fade + up), .reveal-left, .reveal-right,
+   .reveal-scale, .reveal-blur. .step stays hidden until the user
+   advances forward. Don't combine .step with .reveal* on the same
+   element. */
+
+/* FOUC guard: hide reveals until chassis.js marks the document ready. */
+:root:not(.reveals-ready) .reveal,
+:root:not(.reveals-ready) .reveal-left,
+:root:not(.reveals-ready) .reveal-right,
+:root:not(.reveals-ready) .reveal-scale,
+:root:not(.reveals-ready) .reveal-blur,
+:root:not(.reveals-ready) .step {
+    opacity: 0;
+}
+:root:not(.reveals-ready) .reveal-blur { filter: blur(10px); }
+
+/* ---------- Stagger delays (.d1 … .d8) ---------- */
+.slide.visible .d1 { transition-delay: 0.10s; animation-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.25s; animation-delay: 0.25s; }
+.slide.visible .d3 { transition-delay: 0.40s; animation-delay: 0.40s; }
+.slide.visible .d4 { transition-delay: 0.55s; animation-delay: 0.55s; }
+.slide.visible .d5 { transition-delay: 0.70s; animation-delay: 0.70s; }
+.slide.visible .d6 { transition-delay: 0.85s; animation-delay: 0.85s; }
+.slide.visible .d7 { transition-delay: 1.00s; animation-delay: 1.00s; }
+.slide.visible .d8 { transition-delay: 1.15s; animation-delay: 1.15s; }
+
+/* ---------- Nav dots ----------
+   Default: right-center (vertical stack on right edge).
+   Override with <body data-nav="bottom | top-right | hidden">. */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1.5vw, 1.4rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vh, 0.8rem);
+    z-index: 50;
+}
+
+body[data-nav="bottom"] .nav-dots {
+    right: auto;
+    top: auto;
+    bottom: clamp(1rem, 2.5vh, 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+body[data-nav="top-right"] .nav-dots {
+    right: clamp(1rem, 2.5vw, 2rem);
+    top: clamp(1rem, 2.5vh, 2rem);
+    transform: none;
+    flex-direction: row;
+}
+
+body[data-nav="hidden"] .nav-dots { display: none; }
+
+body[data-nav="bottom"] .keyboard-hint {
+    left: clamp(1rem, 2vw, 1.5rem);
+    transform: none;
+}
+
+.nav-dots button {
+    width: var(--nav-dot-size);
+    height: var(--nav-dot-size);
+    border-radius: var(--nav-dot-radius);
+    border: 1.5px solid var(--nav-dot-color);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: var(--nav-dot-opacity);
+}
+.nav-dots button:hover { opacity: 0.85; transform: scale(1.15); }
+.nav-dots button:focus-visible {
+    outline: 2px solid var(--nav-dot-active-color);
+    outline-offset: 3px;
+    opacity: 1;
+}
+.nav-dots button.active {
+    background: var(--nav-dot-active-color);
+    border-color: var(--nav-dot-active-color);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ---------- Keyboard hint ---------- */
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.keyboard-hint kbd {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.9em;
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--background);
+    margin: 0 0.15em;
+}
+
+/* ---------- Credit line ---------- */
+.chassis-credit {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.02em;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.chassis-credit .chassis-credit-emoji {
+    font-style: normal;
+    margin: 0 0.15em;
+}
+
+body[data-nav="bottom"] .chassis-credit {
+    left: auto;
+    right: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ---------- Custom cursor ---------- */
+.chassis-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--accent);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+.chassis-cursor.visible { opacity: 1; }
+body.artifact-editor-editing .chassis-cursor { display: none; }
+
+@media (hover: none) {
+    .chassis-cursor { display: none; }
+}
+
+body.chassis-cursor-active:not(.artifact-editor-editing),
+body.chassis-cursor-active:not(.artifact-editor-editing) * { cursor: none; }
+
+/* ---------- Opt-outs ---------- */
+body[data-no-chrome] .nav-dots,
+body[data-no-chrome] .keyboard-hint,
+body[data-no-chrome] .chassis-credit,
+body[data-no-chrome] .chassis-cursor,
+body[data-no-chrome] .artifact-editor-toggle { display: none; }
+
+:fullscreen .keyboard-hint,
+:fullscreen .chassis-credit,
+:fullscreen .artifact-editor-toggle { display: none; }
+
+@media (hover: none) {
+    .keyboard-hint,
+    .chassis-credit { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 560px) {
+    .nav-dots,
+    .keyboard-hint,
+    .chassis-credit,
+    .chassis-cursor { display: none; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* ---------- Print (PDF export) ---------- */
+@media print {
+    .nav-dots, .keyboard-hint, .chassis-credit, .chassis-cursor { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    html { scroll-snap-type: none; }
+    .slide-viewport {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+    }
+    .slide-scale {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .slide {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+</style>
+<script data-activated="true">
+/* =====================================================
+   PRESENTATION CHASSIS — slide controller
+   Auto-initializes on DOMContentLoaded.
+   Exposes window.slides for programmatic control.
+   ===================================================== */
+(function () {
+    'use strict';
+
+    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+    const STEP_SELECTOR = '.step';
+    const ALL_REVEAL_SELECTOR = REVEAL_SELECTOR + ', ' + STEP_SELECTOR;
+    const VIEWPORT_CLASS = 'slide-viewport';
+    const SCALE_CLASS = 'slide-scale';
+    // Fixed duration (ms) for .step-spotlight pop-in/out — deliberately not
+    // read from --reveal-duration / prefers-reduced-motion (see _playReveal).
+    const SPOTLIGHT_DURATION = 900;
+
+    function _detectLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        return (param || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+
+    class SlidePresentation {
+        constructor() {
+            this.slides = Array.from(document.querySelectorAll('.slide'));
+            if (this.slides.length === 0) return;
+
+            // Ensure every slide has an id so hashes + anchor links work.
+            // Author-defined ids are preserved; the rest get slide-N (1-indexed).
+            this.slides.forEach((slide, idx) => {
+                if (!slide.id) slide.id = `slide-${idx + 1}`;
+            });
+            this.viewports = this._setupViewports();
+            this.scales = this.viewports.map((viewport) => viewport.querySelector(`.${SCALE_CLASS}`));
+
+            // Hide every reveal element BEFORE lifting the CSS FOUC guard.
+            // After this, .reveals-ready is on <html>, so CSS no longer hides
+            // reveals — inline styles keep them hidden until JS animates them.
+            this._setupReveals();
+
+            this.navDotsContainer = this._ensureNavDots();
+            this.keyboardHint = this._ensureKeyboardHint();
+            this.credit = this._ensureCredit();
+            this.spotlightBackdrop = this._ensureSpotlightBackdrop();
+
+            this._setupCanvasScale();
+            this._setupIntersectionObserver();
+            this._setupKeyboardNav();
+            this._setupWheelNav();
+            this._setupTouchNav();
+            this._setupClickNav();
+            this._setupViewportSync();
+            this._buildNavDots();
+            this._setupHashNav();
+            this._setupCursor();
+            this._setupPrintSettling();
+
+            // If URL has a matching hash, start there; otherwise start at slide 0.
+            const initial = this._slideIndexFromHash(location.hash);
+            this.currentSlide = initial >= 0 ? initial : 0;
+            if (this.currentSlide !== 0) {
+                this._scrollToSlide(this.currentSlide, 'auto');
+            }
+            // Reveal initial slide immediately (observer may miss it on load).
+            const first = this.slides[this.currentSlide];
+            first.classList.add('visible');
+            this._playSlideReveals(first);
+            this._updateNavDots();
+        }
+
+        /* ---------- Viewport scaffolding ----------
+           Authors write .slide as the 1920×1080 artboard. The chassis wraps
+           that authored section in viewport and scale layers. */
+        _setupViewports() {
+            return this.slides.map((slide) => {
+                const existingScale = slide.parentElement?.classList.contains(SCALE_CLASS)
+                    ? slide.parentElement
+                    : null;
+                const existingViewport = existingScale?.parentElement?.classList.contains(VIEWPORT_CLASS)
+                    ? existingScale.parentElement
+                    : null;
+                if (existingViewport) {
+                    this._syncViewportBackground(slide, existingViewport);
+                    return existingViewport;
+                }
+
+                const viewport = document.createElement('div');
+                viewport.className = VIEWPORT_CLASS;
+                const scale = document.createElement('div');
+                scale.className = SCALE_CLASS;
+
+                slide.parentNode.insertBefore(viewport, slide);
+                viewport.appendChild(scale);
+                scale.appendChild(slide);
+                this._syncViewportBackground(slide, viewport);
+
+                return viewport;
+            });
+        }
+
+        _syncViewportBackground(slide, viewport) {
+            const style = getComputedStyle(slide);
+            const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
+            const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
+            if (hasBackgroundImage || hasBackgroundColor) {
+                viewport.style.background = style.background;
+            } else {
+                viewport.style.background = '';
+            }
+            slide.style.background = 'transparent';
+        }
+
+        /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
+        _ensureNavDots() {
+            let el = document.getElementById('navDots');
+            if (!el) {
+                el = document.createElement('nav');
+                el.id = 'navDots';
+                el.className = 'nav-dots';
+                el.setAttribute('aria-label', 'Slide navigation');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureKeyboardHint() {
+            let el = document.querySelector('.keyboard-hint');
+            if (!el) {
+                const i18n = {
+                    en: { navigate: 'navigate', restart: 'restart', fullscreen: 'fullscreen' },
+                    es: { navigate: 'navegar',   restart: 'inicio',   fullscreen: 'fullscreen' },
+                    fr: { navigate: 'naviguer',  restart: 'début',    fullscreen: 'fullscreen' },
+                    de: { navigate: 'blättern',  restart: 'anfang',   fullscreen: 'vollbild' },
+                    pt: { navigate: 'navegar',   restart: 'início',   fullscreen: 'fullscreen' },
+                    ja: { navigate: '移動',      restart: '先頭',      fullscreen: '全画面' },
+                    ko: { navigate: '이동',      restart: '처음',      fullscreen: '전체화면' },
+                    zh: { navigate: '翻页',      restart: '重置',      fullscreen: '全屏' },
+                    it: { navigate: 'navigare',  restart: 'inizio',   fullscreen: 'fullscreen' },
+                    nl: { navigate: 'bladeren',  restart: 'begin',    fullscreen: 'vollscherm' },
+                };
+                const t = i18n[_detectLang()] || i18n.en;
+                el = document.createElement('div');
+                el.className = 'keyboard-hint';
+                el.innerHTML = `<kbd>←</kbd> <kbd>→</kbd> ${t.navigate} &middot; <kbd>R</kbd> ${t.restart} &middot; <kbd>F</kbd> ${t.fullscreen}`;
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureCredit() {
+            let el = document.querySelector('.chassis-credit');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'chassis-credit';
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML = '💜 by ClickUp Brain';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureSpotlightBackdrop() {
+            let el = document.querySelector('.spotlight-backdrop');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'spotlight-backdrop';
+                el.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        // Move the shared backdrop into the SAME .slide-scale box as `card`
+        // (its z-index only wins over the card there — see the CSS comment
+        // on .spotlight-backdrop for why a body-level fixed overlay can't
+        // work: .slide-viewport isolates each slide into its own stacking
+        // context, capping anything inside it from ever outranking a
+        // sibling positioned at the body level).
+        _placeSpotlightBackdrop(card) {
+            const scale = card.closest('.slide-scale');
+            if (scale && this.spotlightBackdrop.parentElement !== scale) {
+                scale.insertBefore(this.spotlightBackdrop, scale.firstChild);
+            }
+        }
+
+        /* ---------- Reveal engine ----------
+           Reveals are driven by the Web Animations API instead of CSS
+           transitions. This lets authors put .reveal* / .step on any
+           element: animation values live in the animation cascade origin
+           and win over normal author declarations, so no wrapper element
+           is required to isolate the chassis from author CSS.
+
+           State per slide:
+           - "hidden":  inline opacity/transform/filter from the 'from'
+                        keyframe of the variant. Set on init and on
+                        forward re-entry.
+           - "played":  animation is running or has run; the class
+                        `reveals-played` on the slide makes playback
+                        idempotent so observer re-fires (resize,
+                        fullscreen) don't restart the animation.
+           - "settled": animation canceled, inline styles cleared. Used
+                        for backward entries (we skip the animation and
+                        show the final state instantly) and for print. */
+
+        _setupReveals() {
+            // Lift the CSS FOUC guard first so getComputedStyle reads each
+            // element's natural opacity, not the guard's blanket opacity: 0.
+            // No paint occurs mid-task — inline hidden styles are applied
+            // before the browser yields, so there is no visible flash.
+            document.documentElement.classList.add('reveals-ready');
+            this.slides.forEach((slide) => {
+                // Static export: slides that were already revealed when this
+                // file was saved (class="... reveals-played") must stay as
+                // shown — only pre-hide reveals on slides not yet played.
+                const alreadyPlayed = slide.classList.contains('reveals-played');
+                slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                    el._targetOpacity = parseFloat(getComputedStyle(el).opacity);
+                    if (!alreadyPlayed) this._applyHiddenStyle(el);
+                });
+            });
+        }
+
+        _setupPrintSettling() {
+            // Browsers snapshot the document for print/PDF export. WAAPI
+            // animations don't necessarily complete in that snapshot, so
+            // settle every slide to its final state first. After printing,
+            // reset — but only for slides that haven't already been viewed,
+            // so the audience experience picks up where it left off.
+            window.addEventListener('beforeprint', () => {
+                this.slides.forEach((slide) => this._settleSlide(slide));
+            });
+        }
+
+        _readTokens() {
+            const cs = getComputedStyle(document.documentElement);
+            const rawDuration = parseFloat(cs.getPropertyValue('--reveal-duration'));
+            const duration = Number.isFinite(rawDuration) ? rawDuration * 1000 : 800;
+            const ease = cs.getPropertyValue('--reveal-ease').trim() || 'cubic-bezier(0.16, 1, 0.3, 1)';
+            const distance = cs.getPropertyValue('--reveal-distance').trim() || '28px';
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            return {
+                duration: reducedMotion ? 1 : duration,
+                ease,
+                distance,
+            };
+        }
+
+        _getRevealDelay(el) {
+            // Use getAttribute('class') rather than el.className: on SVG
+            // elements, `.className` is an SVGAnimatedString (not a string)
+            // and calling .match on it throws. getAttribute is uniform
+            // across HTML and SVG.
+            const classes = el.getAttribute('class') || '';
+            const m = classes.match(/\bd([1-8])\b/);
+            if (!m) return 0;
+            // Matches CSS .dN: d1 = 100ms, d2 = 250ms, +150ms per step.
+            return 100 + (parseInt(m[1], 10) - 1) * 150;
+        }
+
+        _getRevealKeyframes(el, distance) {
+            const to = el._targetOpacity ?? 1;
+            if (el.classList.contains('reveal-left')) {
+                return [
+                    { opacity: 0, transform: `translateX(calc(-1 * ${distance}))` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-right')) {
+                return [
+                    { opacity: 0, transform: `translateX(${distance})` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-scale')) {
+                return [
+                    { opacity: 0, transform: 'scale(0.88)' },
+                    { opacity: to, transform: 'scale(1)' },
+                ];
+            }
+            if (el.classList.contains('step-spotlight')) {
+                // Pop up large at screen-center — computed live from this
+                // element's own slot — then settle into place at its
+                // natural size/position (the 'to' keyframe is a no-op
+                // transform, i.e. wherever the layout already puts it).
+                // Scale is auto-fit to a consistently large target size
+                // (~68% of the viewport's width/height, whichever is more
+                // constraining) rather than a fixed multiplier, so a tiny
+                // thumbnail and a big card both read as equally "large" on
+                // stage — a fixed multiplier made small source elements pop
+                // up only modestly bigger than their slot size.
+                //
+                // _setupReveals() pre-hides this element at page load by
+                // writing an inline `transform` straight from this same
+                // branch — but at that point the audience hasn't scrolled
+                // to this slide yet, so the element's on-screen position is
+                // meaningless (often far off-viewport, sometimes measured
+                // mid-scroll). If that stale inline transform is still
+                // present, getBoundingClientRect() below would measure the
+                // ALREADY-DISPLACED box instead of the element's true slot,
+                // compounding a bogus offset into every future reveal of
+                // this element. Neutralize it first so we always measure
+                // the real, natural position, then restore it (whoever
+                // called us — _applyHiddenStyle or _playReveal — overwrites
+                // it again immediately after).
+                const prevTransform = el.style.transform;
+                const animsBefore = el.getAnimations().map(a => ({ playState: a.playState, effect: a.effect?.target === el }));
+                el.style.transform = 'none';
+                const computedWhileNone = getComputedStyle(el).transform;
+                const rect = el.getBoundingClientRect();
+                window.__debugMidState = { computedWhileNone, inlineWhileNone: el.getAttribute('style'), animsBefore, revealAnim: !!el._revealAnim };
+                el.style.transform = prevTransform;
+                const chain = [];
+                for (let n = el; n && n !== el.closest('.slide-scale').parentElement; n = n.parentElement) {
+                    const cs = getComputedStyle(n);
+                    chain.push({
+                        tag: n.tagName, cls: n.className,
+                        inlineStyle: n.getAttribute('style'),
+                        computedTransform: cs.transform,
+                        position: cs.position,
+                    });
+                }
+                window.__debugSpotlight = {
+                    prevTransform, rect: {top: rect.top, left: rect.left, width: rect.width, height: rect.height},
+                    chain,
+                };
+                const dx = (window.innerWidth / 2) - (rect.left + rect.width / 2);
+                const dy = (window.innerHeight / 2) - (rect.top + rect.height / 2);
+                const targetW = window.innerWidth * 0.68;
+                const targetH = window.innerHeight * 0.68;
+                const autoScale = Math.min(targetW / rect.width, targetH / rect.height);
+                const scale = parseFloat(el.dataset.spotlightScale) || autoScale;
+                return [
+                    { opacity: 0, transform: `translate(${dx}px, ${dy}px) scale(${scale})` },
+                    { opacity: to, transform: 'translate(0, 0) scale(1)' },
+                ];
+            }
+            if (el.classList.contains('reveal-blur')) {
+                return [
+                    { opacity: 0, filter: 'blur(10px)' },
+                    { opacity: to, filter: 'blur(0)' },
+                ];
+            }
+            // Default: .reveal or .step (slide up + fade)
+            return [
+                { opacity: 0, transform: `translateY(${distance})` },
+                { opacity: to, transform: 'translateY(0)' },
+            ];
+        }
+
+        _applyHiddenStyle(el) {
+            const { distance } = this._readTokens();
+            const from = this._getRevealKeyframes(el, distance)[0];
+            if ('opacity' in from) el.style.opacity = from.opacity;
+            if ('transform' in from) el.style.transform = from.transform;
+            if ('filter' in from) el.style.filter = from.filter;
+        }
+
+        _clearHiddenStyle(el) {
+            el.style.opacity = '';
+            el.style.transform = '';
+            el.style.filter = '';
+        }
+
+        _cancelReveal(el) {
+            if (el._revealAnim) {
+                el._revealAnim.cancel();
+                el._revealAnim = null;
+            }
+        }
+
+        _playReveal(el, delayOverride) {
+            this._cancelReveal(el);
+            const { duration, ease, distance } = this._readTokens();
+            const delay = typeof delayOverride === 'number' ? delayOverride : this._getRevealDelay(el);
+            const keyframes = this._getRevealKeyframes(el, distance);
+            // .step-spotlight is a deliberate, presenter-triggered stage
+            // effect (not incidental UI motion), so it always plays over a
+            // real, visible duration — otherwise prefers-reduced-motion
+            // collapses `duration` to 1ms and the whole effect just flashes
+            // and is gone before anyone can see it.
+            const playDuration = el.classList.contains('step-spotlight') ? SPOTLIGHT_DURATION : duration;
+            // fill: 'backwards' applies the 'from' keyframe during the
+            // stagger delay so the element stays hidden until its turn,
+            // without pinning the 'to' keyframe after the animation ends.
+            // This lets co-existing author CSS (e.g. a `.pulse` CSS
+            // animation on the same element) take over naturally once the
+            // entrance completes — otherwise our fill would mask anything
+            // the author wanted to happen post-reveal.
+            const anim = el.animate(keyframes, {
+                duration: playDuration,
+                delay,
+                easing: ease,
+                fill: 'backwards',
+            });
+            el._revealAnim = anim;
+            // Safe to clear inline 'from' styles now — the animation's
+            // backwards-fill holds the element at the 'from' keyframe for
+            // the duration of any stagger delay.
+            this._clearHiddenStyle(el);
+
+            if (el.classList.contains('step-spotlight')) {
+                el.classList.add('spotlighting');
+                this._placeSpotlightBackdrop(el);
+                this.spotlightBackdrop?.classList.add('active');
+                const endSpotlight = () => {
+                    el.classList.remove('spotlighting');
+                    this.spotlightBackdrop?.classList.remove('active');
+                };
+                anim.finished.then(endSpotlight, endSpotlight);
+            }
+        }
+
+        // Mirror image of _playReveal: shrink a shown .step-spotlight back
+        // down into the dark, large center-stage state (same backdrop, same
+        // motion, reversed) instead of just snapping it away instantly.
+        _playRevealOut(el) {
+            this._cancelReveal(el);
+            const { ease, distance } = this._readTokens();
+            const [hidden, shown] = this._getRevealKeyframes(el, distance);
+            const anim = el.animate([shown, hidden], {
+                duration: SPOTLIGHT_DURATION,
+                easing: ease,
+                fill: 'forwards',
+            });
+            el._revealAnim = anim;
+            el.classList.add('spotlighting');
+            this._placeSpotlightBackdrop(el);
+            this.spotlightBackdrop?.classList.add('active');
+            const finish = () => {
+                el.classList.remove('spotlighting');
+                this.spotlightBackdrop?.classList.remove('active');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            };
+            anim.finished.then(finish, finish);
+        }
+
+        _playSlideReveals(slide) {
+            if (slide.classList.contains('reveals-played')) return;
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => this._playReveal(el));
+            // .step elements stay hidden until the user advances.
+        }
+
+        _resetSlideReveals(slide) {
+            // Disabled for this static export: never re-hide content that
+            // was already revealed (e.g. the title on slide 1), so opening
+            // or navigating the deck never makes shown content disappear.
+        }
+
+        _settleSlide(slide) {
+            // Print / PDF export: jump to the final state with everything
+            // shown, so every step appears in the exported document.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => el.classList.add('step-shown'));
+        }
+
+        _rewindSlide(slide) {
+            // Backward re-entry: show reveals instantly (no replay — the
+            // viewer already saw the intro) but hide every step, so the
+            // slide is positioned at the start of its stepped content and
+            // can be stepped through again.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => {
+                el.classList.remove('step-shown');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+        }
+
+        /* ---------- Navigation ----------
+           goTo scrolls to the target. Both forward-replay and backward-
+           rewind need to mutate the target BEFORE scrolling — while it's
+           still offscreen — so the viewer never sees the old state flash
+           into view. Resetting after the slide is in view causes a visible
+           "show then hide" blink; the IntersectionObserver fires too late
+           (80% threshold) to catch it. */
+        goTo(index) {
+            const clamped = Math.max(0, Math.min(this.slides.length - 1, index));
+            if (clamped === this.currentSlide) return;
+
+            const target = this.slides[clamped];
+            const goingForward = clamped > this.currentSlide;
+
+            if (target.classList.contains('visible')) {
+                if (goingForward) {
+                    // Forward replay: full reset so the observer can play reveals fresh.
+                    target.classList.remove('visible');
+                    this._resetSlideReveals(target);
+                } else {
+                    // Backward rewind: hide any shown steps so the slide
+                    // scrolls back in at the start of its stepped content.
+                    this._rewindSlide(target);
+                }
+            }
+
+            this._scrollToSlide(clamped, 'smooth');
+        }
+
+        _scrollToSlide(index, behavior) {
+            this.viewports[index]?.scrollIntoView({ behavior, block: 'start' });
+        }
+
+        _slideIndexFromHash(hash) {
+            if (!hash) return -1;
+            return this.slides.findIndex((s) => '#' + s.id === hash);
+        }
+
+        _syncHash() {
+            const slide = this.slides[this.currentSlide];
+            if (!slide || !slide.id) return;
+            const newHash = '#' + slide.id;
+            if (location.hash !== newHash) {
+                // replaceState — keeps the URL in sync without polluting history,
+                // so the browser back button exits the deck instead of stepping through slides.
+                try {
+                    history.replaceState(null, '', newHash);
+                } catch {
+                    // Sandboxed iframes (opaque origin, about:srcdoc) reject URL
+                    // mutation with a SecurityError. Hash sync is a nicety — an
+                    // unguarded throw here kills the observer callback before it
+                    // marks the slide visible and plays its reveals.
+                }
+            }
+        }
+
+        _setupHashNav() {
+            // React to external hash changes (anchor link clicks, back/forward if user uses pushState manually)
+            window.addEventListener('hashchange', () => {
+                const idx = this._slideIndexFromHash(location.hash);
+                if (idx >= 0 && idx !== this.currentSlide) this.goTo(idx);
+            });
+        }
+
+        /* ---------- Custom cursor ----------
+           Accent disc that follows the pointer, hidden after idle. */
+        _setupCursor() {
+            if (!matchMedia('(hover: hover)').matches) return;
+
+            const cursor = document.createElement('div');
+            cursor.className = 'chassis-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+            document.body.classList.add('chassis-cursor-active');
+
+            const half = 16;  // matches width/height / 2 in CSS
+            const IDLE_MS = 2500;
+            let idleTimer = null;
+
+            const show = () => {
+                cursor.classList.add('visible');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    cursor.classList.remove('visible');
+                }, IDLE_MS);
+            };
+            const hide = () => {
+                clearTimeout(idleTimer);
+                cursor.classList.remove('visible');
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate3d(${e.clientX - half}px, ${e.clientY - half}px, 0)`;
+                show();
+            });
+            document.addEventListener('mouseleave', hide);
+            document.addEventListener('mouseenter', show);
+        }
+
+        /* ---------- Fullscreen ---------- */
+        toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.();
+            }
+        }
+
+        next() { this.goTo(this.currentSlide + 1); }
+        prev() { this.goTo(this.currentSlide - 1); }
+        first() { this.goTo(0); }
+        last() { this.goTo(this.slides.length - 1); }
+
+        /* ---------- Step-aware advance / retreat ----------
+           advance() reveals the next .step on the current slide (if any),
+           otherwise advances to the next slide. retreat() hides the last
+           revealed step, otherwise goes back to the previous slide. */
+        advance() {
+            const current = this.slides[this.currentSlide];
+            const nextStep = current?.querySelector('.step:not(.step-shown)');
+            if (nextStep) {
+                nextStep.classList.add('step-shown');
+                // No stagger on click-reveal — the user's gesture is the trigger.
+                this._playReveal(nextStep, 0);
+                return;
+            }
+            this.next();
+        }
+        retreat() {
+            const current = this.slides[this.currentSlide];
+            const shown = current?.querySelectorAll('.step.step-shown');
+            if (shown && shown.length > 0) {
+                const last = shown[shown.length - 1];
+                last.classList.remove('step-shown');
+                if (last.classList.contains('step-spotlight')) {
+                    this._playRevealOut(last);
+                } else {
+                    this._cancelReveal(last);
+                    this._applyHiddenStyle(last);
+                }
+                return;
+            }
+            this.prev();
+        }
+
+        /* ---------- Intersection observer ----------
+           Fire late (>= 80% in view) so reveals play on a settled slide.
+           This is the single source of truth for active-slide state.
+
+           Forward:  add .visible, play reveals. (goTo() has already reset
+                     the target to pre-reveal state if this is a re-visit,
+                     so the animation is fresh either way.)
+           Backward: add .visible, rewind to the start of the stepped
+                     content — reveals are shown instantly (no replay) and
+                     every step is hidden again so the viewer can step
+                     through it fresh. */
+        _setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const idx = this.viewports.indexOf(entry.target);
+                    if (idx < 0) return;
+                    const slide = this.slides[idx];
+
+                    if (idx === this.currentSlide) {
+                        // Same-slide re-fire (initial load, resize, fullscreen).
+                        if (!slide.classList.contains('visible')) {
+                            slide.classList.add('visible');
+                        }
+                        // Idempotent: only plays if not already marked played.
+                        this._playSlideReveals(slide);
+                        return;
+                    }
+
+                    const goingForward = idx > this.currentSlide;
+                    this.currentSlide = idx;
+                    this._updateNavDots();
+                    this._syncHash();
+
+                    slide.classList.add('visible');
+                    if (goingForward) {
+                        this._playSlideReveals(slide);
+                    } else {
+                        this._rewindSlide(slide);
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            this.viewports.forEach((viewport) => observer.observe(viewport));
+        }
+
+        /* ---------- Keyboard ---------- */
+        _setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                // Skip when user is editing text
+                if (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+                switch (e.key) {
+                    // Step-aware: consume steps first, then advance slides
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault(); this.advance(); break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault(); this.retreat(); break;
+                    // Slide-level: always skip past steps
+                    case 'PageDown':
+                        e.preventDefault(); this.next(); break;
+                    case 'PageUp':
+                        e.preventDefault(); this.prev(); break;
+                    case 'Home':
+                        e.preventDefault(); this.first(); break;
+                    case 'End':
+                        e.preventDefault(); this.last(); break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault(); this.toggleFullscreen(); break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault(); this.first(); break;
+                }
+            });
+        }
+
+        /* ---------- Wheel / trackpad ----------
+           ALWAYS preventDefault — letting any native wheel scroll through
+           races against scrollIntoView + mandatory snap, and blocks macOS
+           two-finger horizontal swipes from triggering browser back/forward.
+           Whichever axis has the larger magnitude wins, so vertical scroll
+           and horizontal trackpad swipes both drive advance/retreat. Lock
+           briefly after a gesture so trackpad inertia (continuous small
+           deltas) can't spam next(). */
+        _setupWheelNav() {
+            let locked = false;
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) return;                // preserve browser pinch-zoom (ctrl+wheel)
+                e.preventDefault();                   // block native scroll + horizontal back-swipe
+                if (locked) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (Math.abs(delta) < 20) return;     // ignore tiny flicks
+                locked = true;
+                if (delta > 0) this.advance(); else this.retreat();
+                setTimeout(() => { locked = false; }, 500);
+            }, { passive: false });
+        }
+
+        /* ---------- Click-to-advance ----------
+           A plain click/tap anywhere on the deck (that isn't a control or a
+           text selection) reveals the next .step, same as space/arrow/wheel.
+           Needed for step-driven content (e.g. the results slide) where the
+           audience advances by clicking instead of using the keyboard. */
+        _setupClickNav() {
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.nav-dots, .keyboard-hint, .chassis-credit, a, button, input, select, textarea')) return;
+                if (window.getSelection().toString()) return;
+                this.advance();
+            });
+        }
+
+        /* ---------- Touch / swipe ----------
+           Horizontal swipes advance / retreat slides; left = next, right =
+           prev (matches stories / carousel conventions). Dominantly
+           vertical swipes fall through to native scroll-snap so the
+           existing top/bottom behavior keeps working. A time budget
+           rejects slow pans that were really aborted scrolls. */
+        _setupTouchNav() {
+            const MIN_DISTANCE = 50;     // px — below this is a tap or jitter
+            const MAX_TIME = 600;        // ms — slower than this is a pan, not a swipe
+            const DOMINANCE = 1.2;       // horizontal must beat vertical by this factor
+
+            let startX = 0, startY = 0, startTime = 0;
+            let tracking = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('artifact-editor-editing')) { tracking = false; return; }
+                if (e.touches.length !== 1) { tracking = false; return; }
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                startTime = performance.now();
+                tracking = true;
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const ax = Math.abs(dx), ay = Math.abs(dy);
+                if (ax < MIN_DISTANCE) return;
+                if (ax < ay * DOMINANCE) return;
+                if (performance.now() - startTime > MAX_TIME) return;
+                if (dx < 0) this.advance(); else this.retreat();
+            }, { passive: true });
+
+            window.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+        }
+
+        /* ---------- Canvas scaling ----------
+           Each scaler holds a fixed 1920×1080 slide. Compute the
+           scale factor that fits it inside the viewport and apply via
+           CSS custom property. Runs on init, resize, and fullscreen. */
+        _setupCanvasScale() {
+            const CANVAS_W = 1920;
+            const CANVAS_H = 1080;
+            const scales = this.scales;
+
+            const update = () => {
+                const scale = Math.min(
+                    window.innerWidth / CANVAS_W,
+                    window.innerHeight / CANVAS_H
+                );
+                scales.forEach((el) => {
+                    el?.style.setProperty('--slide-scale', scale);
+                });
+            };
+
+            update();
+            window.addEventListener('resize', update);
+            document.addEventListener('fullscreenchange', () => {
+                requestAnimationFrame(update);
+            });
+        }
+
+        /* ---------- Viewport sync ----------
+           Resize / fullscreenchange → realign current slide. Each slide is
+           100vh, so a viewport height change leaves the existing scroll
+           position out of alignment with the slide top; scroll-snap doesn't
+           re-snap on its own. */
+        _setupViewportSync() {
+            const realign = () => {
+                requestAnimationFrame(() => {
+                    this._scrollToSlide(this.currentSlide, 'auto');
+                });
+            };
+            window.addEventListener('resize', realign);
+            document.addEventListener('fullscreenchange', realign);
+        }
+
+        /* ---------- Nav dots ---------- */
+        _buildNavDots() {
+            // Clear first — prevents duplicates when DOM is re-serialized/re-opened
+            this.navDotsContainer.innerHTML = '';
+            this.slides.forEach((slide, idx) => {
+                const dot = document.createElement('button');
+                dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+                if (idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.goTo(idx));
+                this.navDotsContainer.appendChild(dot);
+            });
+        }
+
+        _updateNavDots() {
+            const dots = this.navDotsContainer.querySelectorAll('button');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === this.currentSlide);
+            });
+        }
+    }
+
+    /* ---------- Auto-init ---------- */
+    function init() {
+        // Each slide canvas is its own editable host for the inline editor.
+        document.querySelectorAll('.slide').forEach(function (el) {
+            el.classList.add('artifact-editable');
+        });
+        window.slides = new SlidePresentation();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chassis -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificado antes de formado</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+    <style>
+      :root{--background:#F6F5FB;--foreground:#1A0F3D;--accent:#655CC6;--accent-foreground:#FFFFFF;--turquesa:#5BBEED;--verde:#A4DF64;--laranja:#F59D01;--marinho:#1A0F3D;--card:#FFFFFF;--card-foreground:#1A0F3D;--muted-foreground:rgba(26,15,61,0.55);--border:rgba(101,92,198,0.1);--font-display:'Sora',sans-serif;--font-body:'Manrope',sans-serif;--font-mono:'JetBrains Mono',monospace;--nav-dot-color:rgba(101,92,198,0.3);--nav-dot-active-color:var(--accent)}h1,h2,h3{font-family:var(--font-display);font-weight:800;letter-spacing:-0.02em;color:var(--foreground)}p,li,span{font-family:var(--font-body)}p{color:var(--muted-foreground);max-width:720px}.section-number{font-family:var(--font-display);font-size:100px;color:rgba(101,92,198,0.06);position:absolute;bottom:40px;right:60px;line-height:1}.eyebrow{font-family:var(--font-mono);font-size:20px;font-weight:500;color:var(--accent);letter-spacing:0.05em}.stat-big{font-family:var(--font-display);font-size:96px;color:var(--accent);line-height:1}.stat-label{font-family:var(--font-body);font-size:28px;color:var(--muted-foreground);margin-top:8px}.source-note{font-family:var(--font-mono);font-size:16px;color:var(--muted-foreground);opacity:0.6;margin-top:16px}.dati-sig{font-family:var(--font-mono);font-size:14px;color:var(--accent);position:absolute;bottom:40px;left:100px;letter-spacing:0.05em;opacity:0.7}
+      .hero{background:var(--marinho);justify-content:center;padding:100px;position:relative;overflow:hidden;gap:24px}.hero::before{content:'';position:absolute;top:-200px;right:-200px;width:800px;height:800px;background:radial-gradient(circle,rgba(101,92,198,0.2),transparent 70%);border-radius:50%;pointer-events:none}.hero::after{content:'';position:absolute;bottom:-300px;left:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(91,190,237,0.1),transparent 70%);border-radius:50%;pointer-events:none}.hero-top{display:flex;justify-content:space-between;align-items:flex-start;width:100%;position:absolute;top:100px;left:100px;right:100px;width:calc(100% - 200px)}.hero-tag{font-family:var(--font-mono);font-size:18px;color:var(--turquesa);letter-spacing:0.08em}.hero-date{font-family:var(--font-mono);font-size:20px;color:rgba(255,255,255,0.5)}.hero h1{font-size:110px;line-height:1.05;max-width:1500px;color:#fff}.hero h1 em{font-style:normal;color:var(--turquesa)}.hero-subtitle{font-family:var(--font-body);font-size:36px;color:rgba(255,255,255,0.5);margin-top:8px}.hero-footer{display:flex;justify-content:space-between;align-items:flex-end;width:100%;position:absolute;bottom:100px;left:100px;right:100px;width:calc(100% - 200px)}.hero-speaker{font-family:var(--font-body);font-size:30px;color:#fff;font-weight:500}.hero .dati-sig{color:rgba(255,255,255,0.4)}
+      .speaker{padding:80px 100px;gap:0;display:flex;flex-direction:column;justify-content:center;background:var(--background)}.speaker-top{display:flex;justify-content:space-between;align-items:flex-start;width:100%;margin-bottom:32px}.speaker-top-left{display:flex;gap:40px;align-items:center}.speaker-photo{width:240px;height:240px;border-radius:14px;border:3px solid var(--accent);overflow:hidden;flex-shrink:0}.speaker-photo img{width:100%;height:100%;object-fit:cover}.speaker-name-block{display:flex;flex-direction:column;gap:16px}.speaker-name-block h2{font-size:72px;margin:0;line-height:1}.speaker-meta{display:flex;gap:36px}.speaker-meta-item{display:flex;flex-direction:column;gap:2px}.speaker-meta-item .meta-label{font-family:var(--font-mono);font-size:15px;color:var(--accent)}.speaker-meta-item .meta-value{font-family:var(--font-body);font-size:26px;color:var(--foreground);font-weight:600}.speaker-qr-group{display:flex;gap:28px}.speaker-qr-block{display:flex;flex-direction:column;align-items:center;gap:10px;flex-shrink:0}.speaker-qr{width:220px;height:220px;background:#fff;border-radius:12px;padding:12px;border:1px solid var(--border)}.speaker-qr img{width:100%;height:100%;object-fit:contain}.speaker-qr-label{font-family:var(--font-mono);font-size:16px;color:var(--muted-foreground)}.speaker-qr-group .speaker-qr{width:180px;height:180px}.speaker-certs-section{width:100%}.speaker-certs-section .certs-label{font-family:var(--font-mono);font-size:18px;color:var(--accent);margin-bottom:24px;display:block}.certs-grid-big{display:flex;gap:28px;align-items:center;justify-content:center}.cert-badge-big{width:160px;height:160px;flex-shrink:0}.cert-badge-big img{width:100%;height:100%;object-fit:contain}
+      .content-slide{padding:100px;gap:48px;justify-content:center;background:var(--background)}.content-slide h2{font-size:72px}.cards-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;margin-top:8px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:48px 36px}.card-marker{font-family:var(--font-display);font-size:44px;color:var(--accent);opacity:0.3;margin-bottom:20px;display:block}.card h3{font-family:var(--font-body);font-weight:700;font-size:32px;color:var(--foreground);margin-bottom:12px}.card p{font-size:24px;color:var(--muted-foreground);max-width:none;line-height:1.4}.cards-2{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px}
+      .aws-fact .fact-num{font-family:var(--font-display);font-size:64px;color:var(--accent);margin-bottom:12px;display:block}.aws-fact p{font-size:24px;color:var(--muted-foreground);max-width:none}
+      .clients-slide{padding:100px;gap:48px;justify-content:center;align-items:center;text-align:center;background:var(--marinho);position:relative;overflow:hidden}.clients-slide::before{content:'';position:absolute;top:50%;left:50%;width:1000px;height:1000px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(101,92,198,0.15),transparent 70%);border-radius:50%;pointer-events:none}.clients-slide h2{font-size:64px;color:#fff}.clients-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:60px 80px;align-items:center;justify-items:center;margin-top:40px}.client-logo{height:140px;width:auto;max-width:280px;object-fit:contain}.clients-note{font-family:var(--font-body);font-size:26px;color:rgba(255,255,255,0.5);margin-top:40px}.clients-slide .dati-sig{color:rgba(255,255,255,0.3)}
+      .gartner-stat{text-align:center}.gartner-stat .stat-big{font-size:80px}.gartner-stat .stat-label{font-size:26px}
+      .service-card .service-name{font-family:var(--font-mono);font-size:16px;color:var(--turquesa);margin-bottom:14px;display:block}.service-card h3{font-family:var(--font-body);font-weight:700;font-size:34px;color:var(--foreground);margin-bottom:8px}.service-card p{font-size:24px;color:var(--muted-foreground);max-width:none}
+      .cert-path{display:flex;align-items:stretch;gap:16px;margin-top:12px}.cert-level{flex:1;border-radius:14px;padding:36px 24px;text-align:center;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;gap:12px}.cert-level.foundational{background:var(--accent);border:2px solid var(--accent)}.cert-level.foundational h3,.cert-level.foundational p,.cert-level.foundational .cert-exp{color:#fff}.cert-level.associate,.cert-level.professional,.cert-level.specialty{background:var(--card);border:1px solid var(--border)}.cert-level h3{font-family:var(--font-body);font-weight:700;font-size:28px;color:var(--foreground)}.cert-level p{font-size:22px;color:var(--muted-foreground);max-width:none;text-align:center;line-height:1.4}.cert-level .cert-exp{font-family:var(--font-mono);font-size:15px;color:var(--accent);margin-top:4px}.cert-level .cert-badge-map{width:84px;height:84px;margin-bottom:4px}.cert-level .cert-badge-map img{width:100%;height:100%;object-fit:contain}.cert-arrow{display:flex;align-items:center;font-family:var(--font-mono);font-size:28px;color:rgba(101,92,198,0.35)}
+      .domain-bars{display:flex;flex-direction:column;gap:28px;margin-top:8px;width:100%;max-width:1500px}.domain-row{display:flex;align-items:center;gap:28px}.domain-name{font-family:var(--font-body);font-weight:600;font-size:28px;color:var(--foreground);width:440px;flex-shrink:0}.domain-bar-bg{flex:1;height:52px;background:rgba(101,92,198,0.08);border-radius:10px;overflow:hidden}.domain-bar-fill{height:100%;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:flex-end;padding-right:20px}.domain-pct{font-family:var(--font-display);font-size:24px;color:#fff}
+      .impact-card{text-align:center}.impact-card .stat-big{font-size:72px}.impact-card .stat-label{font-size:24px;line-height:1.3}
+      .study-list{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:24px}.study-list li{font-size:32px;color:var(--foreground);display:flex;align-items:center;gap:20px}.study-list li .marker{width:10px;height:10px;background:var(--accent);border-radius:50%;flex-shrink:0}.study-list li .detail{color:var(--muted-foreground);font-size:26px;margin-left:6px}.study-list li .new-tag{font-family:var(--font-mono);font-size:14px;background:var(--turquesa);color:#fff;padding:3px 10px;border-radius:4px;margin-left:10px}
+      .trivia-slide{padding:100px;gap:28px;justify-content:center;background:var(--background)}.trivia-slide .q-number{font-family:var(--font-display);font-size:36px;color:var(--accent);opacity:0.6}.trivia-slide h2{font-size:44px;line-height:1.25;max-width:1500px}.trivia-options{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:14px}.trivia-options li{font-family:var(--font-body);font-size:28px;color:var(--foreground);background:var(--card);border:2px solid var(--border);border-radius:14px;padding:22px 32px;display:flex;align-items:center;gap:20px}.trivia-options li .option-letter{font-family:var(--font-mono);font-size:22px;color:var(--accent);width:36px;flex-shrink:0}.trivia-answer{list-style:none;padding:0;margin:8px 0 0}.trivia-answer li{font-family:var(--font-body);font-size:28px;color:var(--foreground);background:rgba(101,92,198,0.1);border:2px solid var(--accent);border-radius:14px;padding:22px 32px;display:flex;align-items:center;gap:20px}.trivia-answer li .option-letter{font-family:var(--font-mono);font-size:22px;color:var(--accent);width:36px;flex-shrink:0}.trivia-explanation{font-family:var(--font-body);font-size:24px;color:var(--foreground);padding:20px 32px;background:rgba(101,92,198,0.05);border-left:4px solid var(--accent);border-radius:0 10px 10px 0;max-width:1300px}
+      .motiv-slide{align-items:center;justify-content:center;text-align:center;gap:32px;padding:100px;background:var(--marinho);position:relative;overflow:hidden}.motiv-slide::before{content:'';position:absolute;top:50%;left:50%;width:900px;height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(101,92,198,0.15),transparent 70%);border-radius:50%;pointer-events:none;animation:glow 6s ease-in-out infinite}.motiv-slide h1{font-size:120px;line-height:1.1;color:#fff}.motiv-slide h1 em{font-style:normal;color:var(--turquesa)}.motiv-slide p{font-size:32px;text-align:center;color:rgba(255,255,255,0.6)}.motiv-slide .dati-sig{color:rgba(255,255,255,0.3)}
+      .results-slide{padding:100px;gap:40px;justify-content:center;align-items:center;text-align:center;background:var(--background)}.results-slide h2{font-size:64px}
+      .results-grid{display:flex;gap:56px;align-items:stretch;justify-content:center;width:100%;max-width:1720px}
+      .results-col{flex:1;display:flex;flex-direction:column;gap:16px;min-width:0}
+      .results-col-label{font-family:var(--font-mono);font-size:18px;color:var(--accent);letter-spacing:0.05em;text-align:left}
+      .sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .sim-card{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+      .sim-card img{display:block;width:100%;height:auto}
+      .real-result{position:relative;flex:1;background:var(--card);border:2px solid var(--accent);border-radius:20px;padding:36px;display:flex;flex-direction:column;align-items:center;gap:20px}
+      .real-result img{width:100%;border-radius:12px;border:1px solid var(--border)}
+      /* Spotlight: click-driven steps pop up large at screen-center (computed
+         live from each element's own slot via getBoundingClientRect in
+         _getRevealKeyframes), then settle into place. */
+      .step-spotlight.spotlighting{z-index:600;box-shadow:0 30px 80px rgba(0,0,0,0.45)}
+      /* Positioned absolute (not fixed) and reparented into the current
+         card's own .slide-scale at activation time (see
+         _placeSpotlightBackdrop) — .slide-scale is itself a 1920x1080 box
+         scaled+centered to fill the screen, and, crucially, sharing that
+         SAME stacking context is what lets the spotlighting card's z-index
+         actually win over the backdrop. A body-level position:fixed
+         backdrop would sit in a totally different stacking context (per
+         .slide-viewport's `isolation:isolate`) and would always paint over
+         the card no matter how high the card's own z-index was set. */
+      .spotlight-backdrop{position:absolute;inset:0;background:rgba(10,6,31,0.78);opacity:0;pointer-events:none;transition:opacity 0.5s ease;z-index:500}
+      .spotlight-backdrop.active{opacity:1}
+      .real-score{display:flex;flex-direction:column;align-items:center;gap:6px}
+      .real-score .stat-big{font-size:150px}
+      .real-score .pass-tag{font-family:var(--font-mono);font-size:22px;font-weight:600;color:#fff;background:var(--verde);padding:8px 22px;border-radius:24px;letter-spacing:0.05em}
+      .closer{align-items:center;justify-content:center;text-align:center;gap:28px;background:var(--marinho);position:relative;overflow:hidden}.closer::before{content:'';position:absolute;top:50%;left:50%;width:900px;height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(101,92,198,0.12),transparent 70%);border-radius:50%;pointer-events:none;animation:glow 6s ease-in-out infinite}.closer h1{font-size:100px;line-height:1.1;color:#fff}.closer h1 em{font-style:normal;color:var(--turquesa)}.closer p{font-size:30px;text-align:center;color:rgba(255,255,255,0.6)}.closer .dati-sig{color:rgba(255,255,255,0.3)}
+      @keyframes glow{0%,100%{opacity:0.4;transform:translate(-50%,-50%) scale(0.9)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
+    </style>
+  
+  
+    <!-- Slide 1: Capa -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(26, 15, 61);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide hero artifact-editable visible reveals-played" id="slide-1">
+      <div class="hero-top"><span class="hero-tag reveal d1" style="">Cloud | AI</span><span class="hero-date reveal d1" style="">29/08/2026</span></div>
+      <h1 class="reveal d2" style="">Certificado antes<br>de <em>formado</em></h1>
+      <p class="hero-subtitle reveal d3" style="">A jornada de certificação AWS</p>
+      <div class="hero-footer reveal d4" style=""><span class="hero-speaker">Vitor Soller</span></div>
+    </section></div></div>
+
+    <!-- Slide 2: Speaker -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide speaker artifact-editable visible reveals-played" id="slide-2">
+      <span class="eyebrow reveal d1" style="">// about</span>
+      <div class="speaker-top reveal d2" style=""><div class="speaker-top-left"><div class="speaker-photo"><img src="https://vsoller.com.br/assets/vitor-hero-BRA1FIwL.jpg" alt="Vitor Soller"></div><div class="speaker-name-block"><h2>Vitor Soller</h2><div class="speaker-meta"><div class="speaker-meta-item"><span class="meta-label">formação</span><span class="meta-value">Eng. Computação, Mauá '25</span></div><div class="speaker-meta-item"><span class="meta-label">trabalho</span><span class="meta-value">Analista de Projetos @ Dati</span></div><div class="speaker-meta-item"><span class="meta-label">hobby</span><span class="meta-value">Escalada Indoor</span></div></div></div></div><div class="speaker-qr-group"><div class="speaker-qr-block"><div class="speaker-qr"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://www.linkedin.com/in/vitorsoller" alt="LinkedIn QR"></div><span class="speaker-qr-label">LinkedIn</span></div><div class="speaker-qr-block"><div class="speaker-qr"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://vsoller.com.br" alt="Portfolio QR"></div><span class="speaker-qr-label">Portfolio</span></div></div></div>
+      <div class="speaker-certs-section reveal d3" style=""><span class="certs-label">certificações AWS</span><div class="certs-grid-big"><div class="cert-badge-big"><img src="https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png" alt="CCP"></div><div class="cert-badge-big"><img src="https://images.credly.com/images/4d4693bb-530e-4bca-9327-de07f3aa2348/image.png" alt="AIP"></div><div class="cert-badge-big"><img src="https://images.credly.com/images/0e284c3f-5164-4b21-8660-0d84737941bc/image.png" alt="SAA"></div><div class="cert-badge-big"><img src="https://images.credly.com/images/b9feab85-1a43-4f6c-99a5-631b88d5461b/image.png" alt="DVA"></div><div class="cert-badge-big"><img src="https://images.credly.com/images/2d84e428-9078-49b6-a804-13c15383d0de/image.png" alt="SAP"></div><div class="cert-badge-big"><img src="https://images.credly.com/images/53acdae5-d69f-4dda-b650-d02ed7a50dd7/image.png" alt="SCS"></div></div></div>
+    </section></div></div>
+
+    <!-- Slide 3: Cloud -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable visible reveals-played" id="slide-3">
+      <span class="section-number">01</span><span class="eyebrow reveal d1" style="">// conceito</span>
+      <h2 class="reveal d2" style="">O que é Cloud Computing?</h2>
+      <div class="cards-3"><div class="card step" style="opacity: 0; transform: translateY(28px);"><span class="card-marker">01</span><h3>On-Demand</h3><p>Recursos disponíveis quando você precisa, sem comprar hardware</p></div><div class="card step" style="opacity: 0; transform: translateY(28px);"><span class="card-marker">02</span><h3>Escalável</h3><p>Cresce e diminui conforme a demanda do momento</p></div><div class="card step" style="opacity: 0; transform: translateY(28px);"><span class="card-marker">03</span><h3>Pay-as-you-go</h3><p>Pague somente pelo que usar, como conta de luz</p></div></div>
+    </section></div></div>
+
+    <!-- Slide 4: AWS -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable visible reveals-played" id="slide-4">
+      <span class="section-number">02</span><span class="eyebrow reveal d1" style="">// a plataforma</span>
+      <h2 class="reveal d2" style="">Quem é a <em style="color:var(--accent)">AWS</em>?</h2>
+      <div class="cards-3"><div class="card aws-fact step" style="opacity: 0; transform: translateY(28px);"><span class="fact-num">2006</span><p>Nasceu da infra da Amazon</p></div><div class="card aws-fact step" style="opacity: 0; transform: translateY(28px);"><span class="fact-num">200+</span><p>Serviços disponíveis</p></div><div class="card aws-fact step" style="opacity: 0; transform: translateY(28px);"><span class="fact-num">33</span><p>Regiões globais</p></div></div>
+    </section></div></div>
+
+    <!-- Slide 5: Clients -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(26, 15, 61);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide clients-slide artifact-editable" id="slide-5">
+      <span class="eyebrow reveal d1" style="color: var(--turquesa); opacity: 0; transform: translateY(28px);">// quem usa AWS?</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Empresas que rodam na AWS</h2>
+      <div class="clients-grid">
+        <img class="client-logo step" src="https://cdn.simpleicons.org/netflix/E50914" alt="Netflix" style="opacity: 0; transform: translateY(28px);">
+        <img class="client-logo step" src="https://cdn.simpleicons.org/nubank/820AD1" alt="Nubank" style="opacity: 0; transform: translateY(28px);">
+        <img class="client-logo step" src="https://cdn.simpleicons.org/ifood/EA1D2C" alt="iFood" style="opacity: 0; transform: translateY(28px);">
+        <img class="client-logo step" src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Banco_Ita%C3%BA_logo.svg" alt="Itaú" style="opacity: 0; transform: translateY(28px);">
+        <img class="client-logo step" src="https://upload.wikimedia.org/wikipedia/commons/e/e5/NASA_logo.svg" alt="NASA" style="opacity: 0; transform: translateY(28px);">
+        <img class="client-logo step" src="https://cdn.simpleicons.org/spotify/1DB954" alt="Spotify" style="opacity: 0; transform: translateY(28px);">
+      </div>
+      <p class="clients-note reveal d8" style="opacity: 0; transform: translateY(28px);">De startups a empresas com milhões de usuários.</p>
+    </section></div></div>
+
+    <!-- Slide 6: Gartner -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable" id="slide-6">
+      <span class="section-number">03</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// mercado</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Por que Cloud importa agora?</h2>
+      <div class="cards-3"><div class="card gartner-stat step" style="opacity: 0; transform: translateY(28px);"><div class="stat-big">$850B</div><div class="stat-label">gastos com cloud<br>pública em 2026</div></div><div class="card gartner-stat step" style="opacity: 0; transform: translateY(28px);"><div class="stat-big">+21%</div><div class="stat-label">crescimento<br>ano sobre ano</div></div><div class="card gartner-stat step" style="opacity: 0; transform: translateY(28px);"><div class="stat-big">$1.4T</div><div class="stat-label">projeção<br>até 2029</div></div></div>
+      <p class="source-note reveal d6" style="opacity: 0; transform: translateY(28px);">Gartner, 2026 — "o maior projeto de infraestrutura já tentado pela humanidade"</p>
+    </section></div></div>
+
+    <!-- Slide 7: Services -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable" id="slide-7">
+      <span class="section-number">04</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// serviços</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Os mais usados</h2>
+      <div class="cards-2"><div class="card service-card step" style="opacity: 0; transform: translateY(28px);"><span class="service-name">compute</span><h3>Amazon EC2</h3><p>Servidores virtuais na nuvem</p></div><div class="card service-card step" style="opacity: 0; transform: translateY(28px);"><span class="service-name">storage</span><h3>Amazon S3</h3><p>Armazenamento de objetos ilimitado</p></div><div class="card service-card step" style="opacity: 0; transform: translateY(28px);"><span class="service-name">serverless</span><h3>AWS Lambda</h3><p>Execute código sem provisionar servidores</p></div><div class="card service-card step" style="opacity: 0; transform: translateY(28px);"><span class="service-name">database</span><h3>Amazon RDS</h3><p>Banco de dados gerenciado</p></div></div>
+    </section></div></div>
+
+    <!-- Slide 8: Cert Map -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable" style="padding: 80px; " id="slide-8">
+      <span class="section-number">05</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// certificações</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">O caminho AWS</h2>
+      <div class="cert-path"><div class="cert-level foundational step" style="opacity: 0; transform: translateY(28px);"><div class="cert-badge-map"><img src="https://images.credly.com/images/00634f82-b07f-4bbd-a6bb-53de397fc3a6/image.png" alt="CCP"></div><h3>Foundational</h3><p>Cloud Practitioner<br>AI Practitioner</p><span class="cert-exp">~6 meses de exposição</span></div><div class="cert-arrow">→</div><div class="cert-level associate step" style="opacity: 0; transform: translateY(28px);"><div class="cert-badge-map"><img src="https://images.credly.com/images/0e284c3f-5164-4b21-8660-0d84737941bc/image.png" alt="SAA"></div><h3>Associate</h3><p>Solutions Architect<br>Developer<br>SysOps Admin</p><span class="cert-exp">1+ ano de experiência</span></div><div class="cert-arrow">→</div><div class="cert-level professional step" style="opacity: 0; transform: translateY(28px);"><div class="cert-badge-map"><img src="https://images.credly.com/images/2d84e428-9078-49b6-a804-13c15383d0de/image.png" alt="SAP"></div><h3>Professional</h3><p>Solutions Architect<br>DevOps Engineer</p><span class="cert-exp">2+ anos de experiência</span></div><div class="cert-arrow">→</div><div class="cert-level specialty step" style="opacity: 0; transform: translateY(28px);"><div class="cert-badge-map"><img src="https://images.credly.com/images/53acdae5-d69f-4dda-b650-d02ed7a50dd7/image.png" alt="SCS"></div><h3>Specialty</h3><p>Security<br>Networking<br>ML</p><span class="cert-exp">2+ anos na especialidade</span></div></div>
+    </section></div></div>
+
+    <!-- Slide 9: Exam -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable" id="slide-9">
+      <span class="section-number">06</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// CLF-C02 — 65 questões, 90 min, USD 100</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">O que cai no exame?</h2>
+      <div class="domain-bars"><div class="domain-row step" style="opacity: 0; transform: translateY(28px);"><div class="domain-name">Cloud Technology &amp; Services</div><div class="domain-bar-bg"><div class="domain-bar-fill" style="width:34%"><span class="domain-pct">34%</span></div></div></div><div class="domain-row step" style="opacity: 0; transform: translateY(28px);"><div class="domain-name">Security &amp; Compliance</div><div class="domain-bar-bg"><div class="domain-bar-fill" style="width:30%"><span class="domain-pct">30%</span></div></div></div><div class="domain-row step" style="opacity: 0; transform: translateY(28px);"><div class="domain-name">Cloud Concepts</div><div class="domain-bar-bg"><div class="domain-bar-fill" style="width:24%"><span class="domain-pct">24%</span></div></div></div><div class="domain-row step" style="opacity: 0; transform: translateY(28px);"><div class="domain-name">Billing, Pricing &amp; Support</div><div class="domain-bar-bg"><div class="domain-bar-fill" style="width:12%"><span class="domain-pct">12%</span></div></div></div></div>
+    </section></div></div>
+
+    <!-- Slide 10: Impact -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable" id="slide-10">
+      <span class="section-number">07</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// pesquisa ESG/AWS</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">O que muda na sua carreira?</h2>
+      <div class="cards-3"><div class="card impact-card step" style="opacity: 0; transform: translateY(28px);"><div class="stat-big">74%</div><div class="stat-label">tiveram aumento<br>de salário</div></div><div class="card impact-card step" style="opacity: 0; transform: translateY(28px);"><div class="stat-big">83%</div><div class="stat-label">maior segurança<br>no emprego</div></div><div class="card impact-card step" style="opacity: 0; transform: translateY(28px);"><div class="stat-big">90%</div><div class="stat-label">selecionados para<br>projetos especiais</div></div></div>
+      <p class="source-note reveal d6" style="opacity: 0; transform: translateY(28px);">ESG — "Training and Certification Help Learners Thrive in a Cloud-first World"</p>
+    </section></div></div>
+
+    <!-- Slide 11: Study -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide content-slide artifact-editable" id="slide-11">
+      <span class="section-number">08</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// preparação</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Como estudar (gastando pouco)</h2>
+      <ul class="study-list"><li class="step" style="opacity: 0; transform: translateY(28px);"><div class="marker"></div>AWS Skill Builder <span class="detail">— cursos oficiais gratuitos</span></li><li class="step" style="opacity: 0; transform: translateY(28px);"><div class="marker"></div>Udemy — Stephane Maarek <span class="detail">— cursos completos, baratos na promoção</span></li><li class="step" style="opacity: 0; transform: translateY(28px);"><div class="marker"></div>Microcredenciais AWS <span class="detail">— labs hands-on gratuitos desde 2025</span><span class="new-tag">FREE</span></li><li class="step" style="opacity: 0; transform: translateY(28px);"><div class="marker"></div>Free Tier 12 meses <span class="detail">— pratique sem gastar</span></li><li class="step" style="opacity: 0; transform: translateY(28px);"><div class="marker"></div>50% off no próximo exame <span class="detail">— ao passar no CCP</span></li><li class="step" style="opacity: 0; transform: translateY(28px);"><div class="marker"></div>2 a 4 semanas <span class="detail">— dedicação focada é suficiente</span></li></ul>
+    </section></div></div>
+
+    <!-- Slide 12: Trivia Q1 -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide trivia-slide artifact-editable" id="slide-12">
+      <span class="section-number">09</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// trivia</span>
+      <span class="q-number reveal d2" style="opacity: 0; transform: translateY(28px);">Questão 1 de 3</span>
+      <h2 class="reveal d3" style="opacity: 0; transform: translateY(28px);">Qual serviço da AWS permite executar código sem provisionar servidores?</h2>
+      <ul class="trivia-options reveal d4" style="opacity: 0; transform: translateY(28px);"><li><span class="option-letter">A.</span> Amazon EC2</li><li><span class="option-letter">B.</span> Amazon S3</li><li><span class="option-letter">C.</span> AWS Lambda</li><li><span class="option-letter">D.</span> Amazon RDS</li></ul>
+      <ul class="trivia-answer"><li class="step" style="opacity: 0; transform: translateY(28px);"><span class="option-letter">C.</span> AWS Lambda</li></ul>
+      <div class="trivia-explanation step" style="opacity: 0; transform: translateY(28px);">Serverless: você sobe o código, a AWS cuida de toda a infra.</div>
+    </section></div></div>
+
+    <!-- Slide 13: Trivia Q2 -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide trivia-slide artifact-editable" id="slide-13">
+      <span class="section-number">09</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// trivia</span>
+      <span class="q-number reveal d2" style="opacity: 0; transform: translateY(28px);">Questão 2 de 3</span>
+      <h2 class="reveal d3" style="opacity: 0; transform: translateY(28px);">No modelo de responsabilidade compartilhada, quem cuida da segurança "da" nuvem (infraestrutura física)?</h2>
+      <ul class="trivia-options reveal d4" style="opacity: 0; transform: translateY(28px);"><li><span class="option-letter">A.</span> O cliente</li><li><span class="option-letter">B.</span> A AWS</li><li><span class="option-letter">C.</span> Ambos igualmente</li><li><span class="option-letter">D.</span> O provedor de internet</li></ul>
+      <ul class="trivia-answer"><li class="step" style="opacity: 0; transform: translateY(28px);"><span class="option-letter">B.</span> A AWS</li></ul>
+      <div class="trivia-explanation step" style="opacity: 0; transform: translateY(28px);">AWS cuida "da" nuvem (hardware, rede, data centers). Cliente cuida "na" nuvem (dados, IAM, configs).</div>
+    </section></div></div>
+
+    <!-- Slide 14: Trivia Q3 -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide trivia-slide artifact-editable" id="slide-14">
+      <span class="section-number">09</span><span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// trivia</span>
+      <span class="q-number reveal d2" style="opacity: 0; transform: translateY(28px);">Questão 3 de 3</span>
+      <h2 class="reveal d3" style="opacity: 0; transform: translateY(28px);">Qual modelo de pricing oferece o maior desconto em troca de compromisso de 1 ou 3 anos?</h2>
+      <ul class="trivia-options reveal d4" style="opacity: 0; transform: translateY(28px);"><li><span class="option-letter">A.</span> On-Demand</li><li><span class="option-letter">B.</span> Spot Instances</li><li><span class="option-letter">C.</span> Reserved Instances / Savings Plans</li><li><span class="option-letter">D.</span> Dedicated Hosts</li></ul>
+      <ul class="trivia-answer"><li class="step" style="opacity: 0; transform: translateY(28px);"><span class="option-letter">C.</span> Reserved / Savings Plans</li></ul>
+      <div class="trivia-explanation step" style="opacity: 0; transform: translateY(28px);">Até 72% de desconto com compromisso. Spot dá mais desconto mas pode ser interrompido.</div>
+    </section></div></div>
+
+    <!-- Slide 15: Motivacional -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(26, 15, 61);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide motiv-slide artifact-editable" id="slide-15">
+      <h1 class="reveal-scale d1" style="opacity: 0; transform: scale(0.88);">Tá com medo?<br><em>Faz com medo mesmo.</em></h1>
+      <p class="reveal d3" style="opacity: 0; transform: translateY(28px);">Só marca.</p>
+    </section></div></div>
+
+    <!-- Slide 16: Resultados -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(246, 245, 251);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide results-slide artifact-editable" id="slide-16">
+      <span class="eyebrow reveal d1" style="opacity: 0; transform: translateY(28px);">// prova real</span>
+      <h2 class="reveal d2" style="opacity: 0; transform: translateY(28px);">Meus resultados</h2>
+      <div class="results-grid">
+        <div class="results-col">
+          <span class="results-col-label reveal d3" style="opacity: 0; transform: translateY(28px);">7 simulados até chegar lá</span>
+          <div class="sim-grid">
+            <div class="sim-card step step-spotlight"><img src="images/20240520.png" alt="Simulado 20/05/2024 - 61% de acertos, reprovado"></div>
+            <div class="sim-card step step-spotlight"><img src="images/20240527.png" alt="Simulado 27/05/2024 - 67% de acertos, reprovado"></div>
+            <div class="sim-card step step-spotlight"><img src="images/20240702-2.png" alt="Simulado 02/07/2024 - 64% de acertos, reprovado"></div>
+            <div class="sim-card step step-spotlight"><img src="images/20240702.png" alt="Simulado 02/07/2024 - 80% de acertos, aprovado"></div>
+            <div class="sim-card step step-spotlight"><img src="images/20240703.png" alt="Simulado 03/07/2024 - 67% de acertos, reprovado"></div>
+            <div class="sim-card step step-spotlight"><img src="images/20240707.png" alt="Simulado 07/07/2024 - 69% de acertos, reprovado"></div>
+            <div class="sim-card step step-spotlight"><img src="images/20240708.png" alt="Simulado 08/07/2024 - 53% de acertos, reprovado"></div>
+          </div>
+        </div>
+        <div class="results-col">
+          <span class="results-col-label reveal d3" style="opacity: 0; transform: translateY(28px);">o resultado real</span>
+          <div class="real-result step step-spotlight">
+            <img src="images/REAL-20240710.png" alt="Resultado oficial AWS Certified Cloud Practitioner - aprovado">
+            <div class="real-score">
+              <span class="stat-big">897</span>
+              <span class="pass-tag">PASS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section></div></div>
+
+    <!-- Slide 17: Closer -->
+    <div class="slide-viewport" style="background: none 0% 0% / auto repeat scroll padding-box border-box rgb(26, 15, 61);"><div class="slide-scale" style="--slide-scale: 0.8870370370370371;"><section class="slide closer artifact-editable" id="slide-17">
+      <h1 class="reveal-scale d1" style="opacity: 0; transform: scale(0.88);">O mercado precisa<br>de gente com <em>cloud</em>.</h1>
+      <p class="reveal d3" style="opacity: 0; transform: translateY(28px);">Comece pelo Cloud Practitioner. O resto é consequência.</p>
+    </section></div></div>
+  
+</div><!----><!----></cu-root><nav id="navDots" class="nav-dots" aria-label="Slide navigation"><button aria-label="Go to slide 1" class="active"></button><button aria-label="Go to slide 2" class=""></button><button aria-label="Go to slide 3" class=""></button><button aria-label="Go to slide 4" class=""></button><button aria-label="Go to slide 5"></button><button aria-label="Go to slide 6"></button><button aria-label="Go to slide 7"></button><button aria-label="Go to slide 8"></button><button aria-label="Go to slide 9"></button><button aria-label="Go to slide 10"></button><button aria-label="Go to slide 11"></button><button aria-label="Go to slide 12"></button><button aria-label="Go to slide 13"></button><button aria-label="Go to slide 14"></button><button aria-label="Go to slide 15"></button><button aria-label="Go to slide 16"></button><button aria-label="Go to slide 17"></button></nav><div class="keyboard-hint"><kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>R</kbd> início · <kbd>F</kbd> fullscreen</div><div class="chassis-credit" aria-hidden="true">💜 by ClickUp Brain</div><div class="chassis-cursor" aria-hidden="true" style="transform: translate3d(1843px, 433px, 0px);"></div></body></html>
