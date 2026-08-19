@@ -434,14 +434,48 @@ async function saveTalk() {
   }
 }
 
+// ---------- Remembering the palestras folder (IndexedDB) ----------
+// A FileSystemDirectoryHandle is structured-cloneable, so it can be
+// stored directly — no need to talk to S3/git just to "remember a
+// folder". Next visit, we re-check permission on the saved handle
+// instead of forcing the native picker again.
+
+const IDB_NAME = 'palestras-editor';
+const IDB_STORE = 'handles';
+const IDB_KEY = 'root';
+
+function openIdb() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveRootHandle(handle) {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(handle, IDB_KEY);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadRootHandle() {
+  const db = await openIdb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
 // ---------- Wiring top-level UI ----------
 
-els.btnOpen.addEventListener('click', async () => {
-  try {
-    rootHandle = await window.showDirectoryPicker();
-  } catch {
-    return;
-  }
+async function refreshTalkList() {
   setStatus('procurando palestras…', '');
   talks = await findTalks(rootHandle);
   els.talkPicker.innerHTML = '';
@@ -462,6 +496,25 @@ els.btnOpen.addEventListener('click', async () => {
   });
   els.talkPicker.disabled = false;
   setStatus(`${talks.length} palestra(s) encontrada(s)`, 'ok');
+}
+
+let pendingRestore = null; // set by tryRestoreRootHandle() when a saved folder needs a fresh gesture
+
+els.btnOpen.addEventListener('click', async () => {
+  if (pendingRestore) {
+    const restore = pendingRestore;
+    pendingRestore = null;
+    await restore();
+    return;
+  }
+  try {
+    rootHandle = await window.showDirectoryPicker();
+  } catch {
+    return;
+  }
+  await saveRootHandle(rootHandle);
+  els.btnOpen.textContent = 'Trocar pasta…';
+  await refreshTalkList();
 });
 
 els.talkPicker.addEventListener('change', () => {
@@ -471,6 +524,17 @@ els.talkPicker.addEventListener('change', () => {
     return;
   }
   openTalk(talks[Number(idx)]);
+});
+
+// Seta pra baixo/cima na barra lateral pula pro próximo/anterior slide
+// (e move o foco do teclado junto, pra continuar navegando sem mouse).
+els.slideNav.addEventListener('keydown', (e) => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  const next = e.key === 'ArrowDown' ? currentSlide + 1 : currentSlide - 1;
+  if (next < 0 || next >= slidePairs.length) return;
+  goToSlide(next);
+  els.slideNav.children[next]?.focus();
 });
 
 els.editMode.addEventListener('change', () => {
@@ -502,4 +566,55 @@ window.addEventListener('beforeunload', (e) => {
 if (!window.showDirectoryPicker) {
   setStatus('Esse navegador não suporta File System Access API — use Chrome ou Edge.', 'error');
   els.btnOpen.disabled = true;
+} else {
+  tryRestoreRootHandle();
+}
+
+// Silent on load (no gesture): if a saved handle already has 'granted'
+// permission, opens straight away. If it needs re-confirmation, turns
+// the open button into a single-click "continue with saved folder" —
+// requestPermission() needs a user gesture, so we can't call it here.
+async function tryRestoreRootHandle() {
+  let handle;
+  try {
+    handle = await loadRootHandle();
+  } catch (err) {
+    console.warn('could not read saved folder handle', err);
+    return;
+  }
+  if (!handle) return;
+
+  let perm;
+  try {
+    perm = await handle.queryPermission({ mode: 'readwrite' });
+  } catch {
+    return;
+  }
+
+  if (perm === 'granted') {
+    rootHandle = handle;
+    els.btnOpen.textContent = 'Trocar pasta…';
+    await refreshTalkList();
+    return;
+  }
+
+  setStatus('pasta salva de antes — clique pra continuar', '');
+  els.btnOpen.textContent = 'Continuar com a pasta salva…';
+  pendingRestore = async () => {
+    try {
+      const granted = await handle.requestPermission({ mode: 'readwrite' });
+      if (granted !== 'granted') {
+        setStatus('permissão negada — escolha a pasta de novo', 'error');
+        els.btnOpen.textContent = 'Abrir pasta de palestras…';
+        return;
+      }
+    } catch (err) {
+      setStatus('erro ao pedir permissão: ' + err.message, 'error');
+      els.btnOpen.textContent = 'Abrir pasta de palestras…';
+      return;
+    }
+    rootHandle = handle;
+    els.btnOpen.textContent = 'Trocar pasta…';
+    await refreshTalkList();
+  };
 }
