@@ -174,6 +174,15 @@ lugar de serviço. Os ícones ficam em `images/aws/` dentro da palestra.
 `credly.com/users/vitor-guirao-soller` (JSON em `/users/vitor-guirao-soller/badges.json`).
 Em nov/2026 eram 12 "AWS Certified". "Early Adopter" e badges de treinamento não contam.
 
+**Diagramas (draw.io):** a fonte fica em `<slug>/diagramas/diagramas.drawio`,
+com uma página por diagrama, estilos `mxgraph.aws4.resourceIcon` e cores
+oficiais por categoria. O SVG de cada página sai pelo draw.io desktop
+(`%LOCALAPPDATA%/Programs/draw.io/draw.io.exe -x -f svg -p <n> ...`, com as
+páginas contadas a partir de 1). O roteamento automático de setas do MCP só
+vale no editor: no export pelo CLI, as setas usam `exitX/entryX`, então as
+saídas precisam ser posicionadas à mão para não cruzar ícones. No slide,
+rótulo com menos de ~18 px some no projetor.
+
 **Sobre imagens:**
 - Prioridade: foto real já existente (do portfólio, do LinkedIn, de
   artigos antigos) > imagem com licença clara e creditada (Wikimedia
