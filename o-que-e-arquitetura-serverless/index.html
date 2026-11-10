@@ -1607,7 +1607,20 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 21 · CUSTO -->
+<!-- 21 · EMPRESAS -->
+<div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
+  <!-- roteiro · Não é coisa de startup. Fontes: Itaú — blog AWS Brasil 20/08/2025 (core bancário internacional com serviços serverless): 63 Lambdas / 66 mil req/dia, 25 workflows Step Functions / 12 mil execuções/dia, custo 26× menor que soluções de mercado. Capital One — case study AWS (capital-one-lambda-ecs): "tens of thousands" de Lambdas, mais de 1/3 das apps serverless no fim de 2022, até 90% de economia em apps. Coca-Cola Freestyle — blog AWS for Industries: experiência touchless com serverless em 150 dias. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> não é coisa só de startup</span>
+  <h2 class="reveal d2">Quem já roda isso <em>em produção.</em></h2>
+  <div class="cards c3">
+    <div class="card o reveal d3"><span class="lbl">banco · Brasil</span><h3>Itaú Unibanco</h3><p>Core bancário internacional em Step Functions, Lambda e DynamoDB.</p><p><strong>66 mil</strong> requisições/dia em 63 Lambdas. Custo <strong>26× menor</strong> que soluções de mercado.</p></div>
+    <div class="card b reveal d4"><span class="lbl">banco · EUA</span><h3>Capital One</h3><p><strong>Dezenas de milhares</strong> de funções Lambda.</p><p>Mais de <strong>1/3 das aplicações</strong> serverless (2022), com até 90% de economia em algumas.</p></div>
+    <div class="card g reveal d5"><span class="lbl">bebidas · global</span><h3>Coca-Cola</h3><p>Máquinas Freestyle: pedir e servir pelo celular, sem tocar na tela.</p><p>Feito com serverless em <strong>150 dias</strong>.</p></div>
+  </div>
+  <p class="src reveal d6">Fontes: AWS Brasil blog (ago/2025) · AWS case study Capital One · AWS for Industries blog (Coca-Cola)</p>
+</section></div></div>
+
+<!-- 22 · CUSTO -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 01:09–01:12 · Cobrança por chamada, execução, transição, armazenamento, transferência, logs. Uma selfie = várias operações; polling e retry também custam. Free Tier consultado em 10/11/2026: novos clientes elegíveis US$ 100 + até US$ 100 por atividades; Free Plan até 6 meses ou fim dos créditos. Contas antes de 15/07/2025 seguem o modelo antigo. Budget avisa, não bloqueia. Fonte: aws.amazon.com/blogs/aws/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/ -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> a parte que ninguém mostra</span>
@@ -1620,18 +1633,62 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <p class="src reveal d6">Free Tier consultado em 10/11/2026 · aws.amazon.com/free</p>
 </section></div></div>
 
-<!-- 22 · RECAP -->
-<div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
-  <!-- roteiro 01:12–01:14 · Recap em até 3 minutos. Fazer a pergunta, esperar a turma responder, só então avançar pra resposta. -->
-  <span class="eyebrow reveal d1"><span class="sl">//</span> se você lembrar de três coisas</span>
-  <ul class="recap">
-    <li><span class="q reveal d2">Onde fica a imagem?</span><span class="a step">S3</span></li>
-    <li><span class="q reveal d3">Quem inicia o processamento?</span><span class="a step">o evento</span></li>
-    <li><span class="q reveal d4">Onde fica o estado?</span><span class="a step">DynamoDB</span></li>
-  </ul>
+<!-- 23 · COMO COBRA -->
+<div class="slide-viewport"><div class="slide-scale"><section class="slide">
+  <!-- roteiro · Cada serviço tem uma unidade de cobrança diferente. Preços on-demand us-east-1 consultados em 10/11/2026 nas páginas oficiais (aws.amazon.com/<serviço>/pricing). Lambda: US$0,20/milhão de requisições + US$0,0000166667 por GB-s (x86; Arm é ~20% mais barato). HTTP API: US$1,00/milhão. Step Functions Standard: US$0,025/1.000 transições — cada retry é uma transição a mais. DynamoDB on-demand: US$0,625/milhão de escritas, US$0,125/milhão de leituras. S3 Standard: US$0,023/GB-mês, US$0,005/1.000 PUT. EventBridge: eventos de serviços AWS no barramento padrão não são cobrados. O exemplo da Lambda é ilustrativo (1 GB por 2 s), não medição. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> cada serviço cobra de um jeito</span>
+  <h2 class="reveal d2">Você paga pelo que <em>usa.</em> Mas o quê, exatamente?</h2>
+  <div class="split" style="grid-template-columns: 1fr 520px; gap: 44px; margin-top: 30px; align-items: start;">
+    <table class="matrix reveal d3" style="margin-top: 0; font-size: 23px; white-space: nowrap;">
+      <thead><tr><th>serviço</th><th>você paga por</th><th>preço · us-east-1</th></tr></thead>
+      <tbody>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/lambda.svg" alt="">Lambda</td><td class="aws">requisição + GB × segundo</td><td class="aws">US$ 0,20 / milhão<br>+ US$ 0,0000167 / GB-s</td></tr>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/api-gateway.svg" alt="">API Gateway</td><td class="aws">requisição</td><td class="aws">US$ 1,00 / milhão (HTTP API)</td></tr>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/step-functions.svg" alt="">Step Functions</td><td class="aws">transição de estado</td><td class="aws">US$ 0,025 / mil</td></tr>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/dynamodb.svg" alt="">DynamoDB</td><td class="aws">leitura e escrita</td><td class="aws">US$ 0,625 / milhão escritas</td></tr>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/s3.svg" alt="">S3</td><td class="aws">armazenamento + requisição</td><td class="aws">US$ 0,023 / GB-mês</td></tr>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/eventbridge.svg" alt="">EventBridge</td><td class="aws">evento publicado</td><td class="you">eventos de serviços AWS: grátis</td></tr>
+      </tbody>
+    </table>
+    <div class="code reveal-right d4" style="font-size: 21px; white-space: pre-wrap; padding: 32px 34px;"><span class="c">// Lambda: o que entra na conta</span>
+<span class="kw">custo</span> = requisições × <span class="s">0,20</span>/milhão
+      + <span class="f">memória (GB)</span> × <span class="f">tempo (s)</span>
+        × <span class="s">0,0000166667</span>
+
+<span class="c">// exemplo ilustrativo:</span>
+<span class="c">// 1 GB rodando 2 s = 2 GB-s</span>
+<span class="kw">≈</span> US$ <span class="s">0,0000335</span> por execução</div>
+  </div>
+  <p class="src reveal d5">preços on-demand das páginas oficiais da AWS, consultados em 10/11/2026 · sem Free Tier</p>
 </section></div></div>
 
-<!-- 23 · PERGUNTAS + QR -->
+<!-- 24 · CUSTO POR SELFIE -->
+<div class="slide-viewport"><div class="slide-scale"><section class="slide">
+  <!-- roteiro · PLACEHOLDER: números virão da calculadora de custo (outra sessão). Mostrar quanto custa UMA selfie somando cada etapa, e quanto custaria a turma toda. Separar consumo de crédito/Free Tier. Preços us-east-1, data da consulta no rodapé. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> fazendo a conta</span>
+  <h2 class="reveal d2">Quanto custa <em>uma selfie?</em></h2>
+  <div class="split half" style="margin-top: 40px; align-items: start;">
+    <div class="reveal d3">
+      <span class="big-num" data-calc="por-selfie">US$ —</span>
+      <p style="margin-top: 16px;">por selfie, somando todas as etapas</p>
+      <p class="lead" style="margin-top: 36px;"><span data-calc="turma">US$ —</span> para a turma toda</p>
+    </div>
+    <div class="record reveal d4">
+      <div class="ttl">de onde vem cada centavo</div>
+      <dl style="grid-template-columns: 280px 1fr;">
+        <dt>API Gateway</dt><dd data-calc="apigw">—</dd>
+        <dt>Lambda</dt><dd data-calc="lambda">—</dd>
+        <dt>Step Functions</dt><dd data-calc="sfn">—</dd>
+        <dt>S3</dt><dd data-calc="s3">—</dd>
+        <dt>DynamoDB</dt><dd data-calc="ddb">—</dd>
+        <dt>CloudFront</dt><dd data-calc="cloudfront">—</dd>
+      </dl>
+    </div>
+  </div>
+  <p class="src reveal d5">estimativa · preços on-demand us-east-1 · sem Free Tier · calculadora em breve</p>
+</section></div></div>
+
+<!-- 25 · PERGUNTAS + QR -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
   <!-- roteiro 01:15 em diante · Deixar esta tela durante as perguntas (até 15 min). -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> obrigado, SBG · aponta a câmera</span>
