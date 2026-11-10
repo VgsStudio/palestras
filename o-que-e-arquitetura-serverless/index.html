@@ -1664,28 +1664,30 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 
 <!-- 24 · CUSTO POR SELFIE -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro · PLACEHOLDER: números virão da calculadora de custo (outra sessão). Mostrar quanto custa UMA selfie somando cada etapa, e quanto custaria a turma toda. Separar consumo de crédito/Free Tier. Preços us-east-1, data da consulta no rodapé. -->
-  <span class="eyebrow reveal d1"><span class="sl">//</span> fazendo a conta</span>
+  <!-- roteiro · Números medidos (serverless-selfie-sbg/docs/custos.md): CloudWatch, 26 execuções em 10/11/2026; preços da AWS Price List API, us-east-1. Por selfie: 2 renders de ~1,86 s numa Lambda ARM de 2 GB, 8 transições de estado, ~6,5 chamadas à API. Preço cheio, sem franquia nem crédito: ~US$ 0,0004/selfie; 100 ≈ US$ 0,04; 1.000 ≈ US$ 0,40; ~2.500 selfies por US$ 1. Ponto: METADE é orquestração (Step Functions), não processamento de imagem. Com as franquias permanentes (Step Functions 4.000 transições; Lambda 1 mi req + 400 mil GB-s) cai para ~metade: as primeiras ~500 selfies do mês não pagam Step Functions. Conferência na AWS Pricing Calculator: US$ 0,22/mês para 1.000 selfies (com a franquia do Step Functions). Fora da conta: dashboard CloudWatch (US$ 3/mês) e alarme (US$ 0,10/mês). Calculadora interativa: serverless-selfie.vsoller.com.br/custos.html -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> medido, não chutado</span>
   <h2 class="reveal d2">Quanto custa <em>uma selfie?</em></h2>
-  <div class="split half" style="margin-top: 40px; align-items: start;">
+  <div class="split" style="grid-template-columns: 1fr 760px; gap: 70px; margin-top: 36px; align-items: start;">
     <div class="reveal d3">
-      <span class="big-num" data-calc="por-selfie">US$ —</span>
-      <p style="margin-top: 16px;">por selfie, somando todas as etapas</p>
-      <p class="lead" style="margin-top: 36px;"><span data-calc="turma">US$ —</span> para a turma toda</p>
+      <span class="big-num" style="font-size: 120px;">US$ 0,0004</span>
+      <p style="margin-top: 14px;">por selfie, somando todas as etapas, preço cheio</p>
+      <p class="lead" style="margin-top: 34px;">100 selfies ≈ <em>US$ 0,04</em><br>US$ 1 paga ~2.500 selfies</p>
+      <p style="margin-top: 28px; font-size: 28px;">Com as franquias mensais, cai para ~metade.</p>
     </div>
     <div class="record reveal d4">
-      <div class="ttl">de onde vem cada centavo</div>
-      <dl style="grid-template-columns: 280px 1fr;">
-        <dt>API Gateway</dt><dd data-calc="apigw">—</dd>
-        <dt>Lambda</dt><dd data-calc="lambda">—</dd>
-        <dt>Step Functions</dt><dd data-calc="sfn">—</dd>
-        <dt>S3</dt><dd data-calc="s3">—</dd>
-        <dt>DynamoDB</dt><dd data-calc="ddb">—</dd>
-        <dt>CloudFront</dt><dd data-calc="cloudfront">—</dd>
+      <div class="ttl">onde vai o dinheiro</div>
+      <dl style="grid-template-columns: 330px 1fr; row-gap: 14px;">
+        <dt>Step Functions</dt><dd class="ok" style="color:#E7157B">50% · orquestração</dd>
+        <dt>Lambda (render)</dt><dd>25%</dd>
+        <dt>S3</dt><dd>14% · download + requisições</dd>
+        <dt>CloudFront</dt><dd>5%</dd>
+        <dt>DynamoDB</dt><dd>2%</dd>
+        <dt>API Gateway</dt><dd>2%</dd>
+        <dt>Logs e demais</dt><dd>2%</dd>
       </dl>
     </div>
   </div>
-  <p class="src reveal d5">estimativa · preços on-demand us-east-1 · sem Free Tier · calculadora em breve</p>
+  <p class="src reveal d5">medido em 26 execuções (10/11/2026) · preços on-demand us-east-1 · sem Free Tier · calculadora: serverless-selfie.vsoller.com.br/custos.html</p>
 </section></div></div>
 
 <!-- 25 · PERGUNTAS + QR -->
