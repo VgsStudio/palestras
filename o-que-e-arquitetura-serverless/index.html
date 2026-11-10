@@ -1292,9 +1292,9 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   .recap .a { font-family: var(--font-mono); font-size: 40px; color: var(--orange); }
 
   /* ---------- QR ---------- */
-  .qrs { display: grid; grid-template-columns: repeat(4, 280px); gap: 60px; margin-top: 48px; }
+  .qrs { display: grid; grid-template-columns: repeat(4, 300px); column-gap: 120px; margin-top: 64px; }
   .qr { display: flex; flex-direction: column; align-items: center; gap: 18px; }
-  .qr .box { width: 280px; height: 280px; background: #fff; border-radius: 18px; }
+  .qr .box { width: 300px; height: 300px; background: #fff; border-radius: 18px; }
   .qr .box img { width: 100%; height: 100%; object-fit: contain; padding: 22px; max-height: none; }
   .qr .cap { font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--paper); }
   .qr .sub2 { font-size: 20px; color: color-mix(in srgb, var(--paper) 58%, transparent); margin-top: -10px; text-align: center; }
@@ -1696,7 +1696,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <div class="qrs">
     <div class="qr reveal d3">
       <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://github.com/VgsStudio/serverless-selfie-sbg" alt="QR code para o repositório do projeto"></div>
-      <span class="cap">O projeto</span><span class="sub2">github.com/VgsStudio</span>
+      <span class="cap">O projeto</span><span class="sub2">github.com/VgsStudio/<br>serverless-selfie-sbg</span>
     </div>
     <div class="qr reveal d4">
       <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://vsoller.com.br" alt="QR code para o portfólio"></div>
