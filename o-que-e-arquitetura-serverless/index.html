@@ -1370,7 +1370,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <!-- roteiro 00:05–00:08 · Navegador → servidor → banco, numerar 1 requisição HTTP, 2 lógica, 3 leitura/escrita, 4 resposta. Sem ícones AWS. Servidor é um papel: quem atende pedidos. Credencial privilegiada nunca no cliente. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> antes da nuvem</span>
   <h2 class="reveal d2">O clique não termina no botão.</h2>
-  <div class="slot diagram empty reveal d3" data-diagram="01-requisicao">
+  <div class="slot diagram reveal d3" data-diagram="01-requisicao">
     <img src="diagramas/01-requisicao.svg" alt="Navegador envia requisição ao servidor, que lê e escreve no banco e devolve a resposta" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 01 · draw.io</b><br>Navegador → Servidor → Banco<br>1 requisição · 2 lógica · 3 leitura/escrita · 4 resposta</div>
   </div>
@@ -1458,7 +1458,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <!-- roteiro 00:21–00:25 · Case pessoal. Navegador autentica no Cognito e recebe token; chamada com token vai ao API Gateway; Lambda executa e acessa DynamoDB. Cognito ao lado, não no caminho de toda chamada. Não faz parte da demo da selfie. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> um caso real meu</span>
   <h2 class="reveal d2">Uma base da <em>Dev Community.</em></h2>
-  <div class="slot diagram empty reveal d3" data-diagram="03-dev-community">
+  <div class="slot diagram reveal d3" data-diagram="03-dev-community">
     <img src="diagramas/03-dev-community.svg" alt="Navegador autentica no Cognito, chama o API Gateway com token, Lambda executa e acessa o DynamoDB" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 03 · draw.io</b><br>Cognito (ao lado) · Navegador → API Gateway → Lambda → DynamoDB</div>
   </div>
@@ -1492,7 +1492,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <!-- roteiro 00:28–00:32 · Linha síncrona espera tudo; assíncrona devolve ID + autorização de upload na hora. Upload concluído ≠ imagem pronta. HTTP pode iniciar processo assíncrono. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> síncrono × assíncrono</span>
   <h2 class="reveal d2">Recebido não significa <em>concluído.</em></h2>
-  <div class="slot diagram empty reveal d3" data-diagram="04-sincrono-assincrono">
+  <div class="slot diagram reveal d3" data-diagram="04-sincrono-assincrono">
     <img src="diagramas/04-sincrono-assincrono.svg" alt="Duas linhas do tempo: pedir e esperar, contra receber e acompanhar" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 04 · draw.io</b><br>Pedir e esperar  ×  receber um ID e acompanhar</div>
   </div>
@@ -1503,7 +1503,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <!-- roteiro 00:32–00:35 · Navegador envia bytes direto ao S3; S3 emite evento; EventBridge leva ao Step Functions. Seta de arquivo ≠ seta de evento. Alternativa simples: S3 → Lambda direto. EventBridge se justifica pelo roteamento. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> arquitetura orientada a eventos</span>
   <h2 class="reveal d2">Um arquivo chegou. <em>Isso é um evento.</em></h2>
-  <div class="slot diagram empty reveal d3" data-diagram="05-evento">
+  <div class="slot diagram reveal d3" data-diagram="05-evento">
     <img src="diagramas/05-evento.svg" alt="Navegador envia a foto ao S3, que emite um evento; o EventBridge encaminha ao Step Functions" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 05 · draw.io</b><br>Navegador ⇒ S3 → EventBridge → Step Functions<br>bytes no upload · referência no evento</div>
   </div>
@@ -1526,7 +1526,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <!-- roteiro 00:38–00:42 · claim (idempotência + lease) → validate → render story ‖ render square → concluir. Retry limitado pra falha transitória, Catch pra erro final. Duplicata não marca o original como falha. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> AWS Step Functions</span>
   <h2 class="reveal d2">O processo também <em>é arquitetura.</em></h2>
-  <div class="slot diagram empty reveal d3" data-diagram="06-workflow">
+  <div class="slot diagram reveal d3" data-diagram="06-workflow">
     <img src="diagramas/06-workflow.svg" alt="Workflow: reivindicar, validar, gerar story e quadrado em paralelo, concluir; com retry e catch" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 06 · draw.io</b><br>Reivindicar → Validar → (Story ‖ Quadrado) → Concluir<br>Retry · Catch → Falha</div>
   </div>
@@ -1567,8 +1567,8 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <!-- roteiro 00:48–00:51 · Três faixas: borda (CloudFront + S3 site), API (API Gateway, Lambda, DynamoDB, sessão anônima por cookie), pipeline (S3 entrada, EventBridge, Step Functions, Lambdas, S3 saída). CloudWatch transversal. Sem Cognito pra turma (Cognito só no painel do apresentador). Infra em CDK no repo. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> tudo junto</span>
   <h2 class="reveal d2">A arquitetura <em>por trás da selfie.</em></h2>
-  <div class="slot diagram empty reveal d3" data-diagram="07-arquitetura-selfie" style="height: 700px;">
-    <img src="diagramas/07-arquitetura-selfie.svg" alt="Arquitetura completa do Serverless Selfie SBG" onerror="this.remove()">
+  <div class="slot diagram reveal d3" data-diagram="07-arquitetura-selfie" style="height: 790px; margin-top: 24px;">
+    <img style="padding: 8px" src="diagramas/07-arquitetura-selfie.svg" alt="Arquitetura completa do Serverless Selfie SBG" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 07 · draw.io</b><br>CloudFront · API Gateway · Lambda · DynamoDB · S3 · EventBridge · Step Functions · CloudWatch</div>
   </div>
 </section>
@@ -1599,10 +1599,10 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <h2 class="reveal d2">O mesmo padrão, <em>outros problemas.</em></h2>
   <div class="cards c2">
     <div class="card reveal d3"><span class="lbl">case anônimo</span><h3>Documentos</h3><p>Upload → processamento → resultado.<br>Uso parcial em produção.</p>
-      <div class="slot diagram empty" data-diagram="08a-documentos" style="height: 300px; margin-top: 14px;"><img src="diagramas/08a-documentos.svg" alt="Fluxo simplificado de ingestão de documentos" onerror="this.remove()"><div class="hint"><b>DIAGRAMA 08A</b><br>fluxo simplificado</div></div>
+      <div class="slot diagram" data-diagram="08a-documentos" style="height: 300px; margin-top: 14px;"><img src="diagramas/08a-documentos.svg" alt="Fluxo simplificado de ingestão de documentos" onerror="this.remove()"><div class="hint"><b>DIAGRAMA 08A</b><br>fluxo simplificado</div></div>
     </div>
     <div class="card o reveal d4"><span class="lbl">exemplo público AWS</span><h3>Serverlesspresso</h3><p>Pedido no celular → café pronto.<br>EventBridge + Step Functions.</p>
-      <div class="slot diagram empty" data-diagram="08b-serverlesspresso" style="height: 300px; margin-top: 14px;"><img src="diagramas/08b-serverlesspresso.svg" alt="Fluxo de pedidos do Serverlesspresso" onerror="this.remove()"><div class="hint"><b>DIAGRAMA 08B</b><br>pedido → eventos/workflow → preparo → pronto</div></div>
+      <div class="slot diagram" data-diagram="08b-serverlesspresso" style="height: 300px; margin-top: 14px;"><img src="diagramas/08b-serverlesspresso.svg" alt="Fluxo de pedidos do Serverlesspresso" onerror="this.remove()"><div class="hint"><b>DIAGRAMA 08B</b><br>pedido → eventos/workflow → preparo → pronto</div></div>
     </div>
   </div>
 </section>
