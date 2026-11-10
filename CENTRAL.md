@@ -116,7 +116,7 @@ prenderam ou perderam a atenção).
 |---|---|---|---|---|
 | certificado-antes-de-formado | 17 | — | — | — |
 | franscarmo-engenharia-computacao | 26 | 45 min | — | preencher depois de apresentar |
-| o-que-e-arquitetura-serverless (SBG IMT, 14/11/2026) | 23 | 75 min + 15 perguntas | — | ~14 min são demo ao vivo; preencher depois |
+| o-que-e-arquitetura-serverless (SBG IMT, 14/11/2026) | 25 | 75 min + 15 perguntas | — | ~14 min são demo ao vivo; preencher depois |
 
 ## Lições e correções recorrentes
 
