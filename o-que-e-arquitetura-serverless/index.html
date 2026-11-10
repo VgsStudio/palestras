@@ -1635,14 +1635,14 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 
 <!-- 23 · COMO COBRA -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro · Cada serviço tem uma unidade de cobrança diferente. Preços on-demand us-east-1 consultados em 10/11/2026 nas páginas oficiais (aws.amazon.com/<serviço>/pricing). Lambda: US$0,20/milhão de requisições + US$0,0000166667 por GB-s (x86; Arm é ~20% mais barato). HTTP API: US$1,00/milhão. Step Functions Standard: US$0,025/1.000 transições — cada retry é uma transição a mais. DynamoDB on-demand: US$0,625/milhão de escritas, US$0,125/milhão de leituras. S3 Standard: US$0,023/GB-mês, US$0,005/1.000 PUT. EventBridge: US$ 1,00/milhão de eventos customizados; eventos aws.s3 no barramento padrão são "billed at the source" (página de preços do EventBridge) — não afirmar que são grátis. S3: GET US$ 0,0004/1.000 confirmado na página; armazenamento US$ 0,023/GB-mês é o valor de tabela conhecido (a tabela não carregou na consulta). O exemplo da Lambda é ilustrativo (1 GB por 2 s), não medição. -->
+  <!-- roteiro · Cada serviço tem uma unidade de cobrança diferente. Preços on-demand us-east-1 consultados em 10/11/2026 nas páginas oficiais (aws.amazon.com/<serviço>/pricing). Lambda: US$0,20/milhão de requisições + US$0,0000133334 por GB-s em ARM, que é o que a selfie usa (x86 custa US$0,0000166667, ~25% a mais). HTTP API: US$1,00/milhão. Step Functions Standard: US$0,025/1.000 transições — cada retry é uma transição a mais. DynamoDB on-demand: US$0,625/milhão de escritas, US$0,125/milhão de leituras. S3 Standard: US$0,023/GB-mês, US$0,005/1.000 PUT. EventBridge: US$ 1,00/milhão de eventos customizados; eventos aws.s3 no barramento padrão são "billed at the source" (página de preços do EventBridge) — não afirmar que são grátis. S3: GET US$ 0,0004/1.000 confirmado na página; armazenamento US$ 0,023/GB-mês é o valor de tabela conhecido (a tabela não carregou na consulta). O exemplo da Lambda é o render real da selfie: 2 GB × 1,86 s medidos no CloudWatch (docs/custos.md) = 3,72 GB-s ≈ US$0,0000498 por execução, e são 2 renders por selfie. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> cada serviço cobra de um jeito</span>
   <h2 class="reveal d2">Você paga pelo que <em>usa.</em> Mas o quê, exatamente?</h2>
   <div class="split" style="grid-template-columns: 1fr 520px; gap: 44px; margin-top: 30px; align-items: start;">
     <table class="matrix reveal d3" style="margin-top: 0; font-size: 23px; white-space: nowrap;">
       <thead><tr><th>serviço</th><th>você paga por</th><th>preço · us-east-1</th></tr></thead>
       <tbody>
-        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/lambda.svg" alt="">Lambda</td><td class="aws">requisição + GB × segundo</td><td class="aws">US$ 0,20 / milhão<br>+ US$ 0,0000167 / GB-s</td></tr>
+        <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/lambda.svg" alt="">Lambda</td><td class="aws">requisição + GB × segundo</td><td class="aws">US$ 0,20 / milhão<br>+ US$ 0,0000133 / GB-s (ARM)</td></tr>
         <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/api-gateway.svg" alt="">API Gateway</td><td class="aws">requisição</td><td class="aws">US$ 1,00 / milhão (HTTP API)</td></tr>
         <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/step-functions.svg" alt="">Step Functions</td><td class="aws">transição de estado</td><td class="aws">US$ 0,025 / mil</td></tr>
         <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/dynamodb.svg" alt="">DynamoDB</td><td class="aws">leitura e escrita</td><td class="aws">US$ 0,625 / milhão escritas</td></tr>
@@ -1650,14 +1650,14 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
         <tr><td><img class="ico" style="width:40px;height:40px;display:inline-block;vertical-align:middle;margin-right:12px" src="images/aws/eventbridge.svg" alt="">EventBridge</td><td class="aws">evento publicado</td><td class="aws">US$ 1,00 / milhão (customizados)</td></tr>
       </tbody>
     </table>
-    <div class="code reveal-right d4" style="font-size: 21px; white-space: pre-wrap; padding: 32px 34px;"><span class="c">// Lambda: o que entra na conta</span>
+    <div class="code reveal-right d4" style="font-size: 21px; white-space: pre-wrap; padding: 32px 34px;"><span class="c">// Lambda (ARM): a conta</span>
 <span class="kw">custo</span> = requisições × <span class="s">0,20</span>/milhão
       + <span class="f">memória (GB)</span> × <span class="f">tempo (s)</span>
-        × <span class="s">0,0000166667</span>
+        × <span class="s">0,0000133334</span>
 
-<span class="c">// exemplo ilustrativo:</span>
-<span class="c">// 1 GB rodando 2 s = 2 GB-s</span>
-<span class="kw">≈</span> US$ <span class="s">0,0000335</span> por execução</div>
+<span class="c">// render da selfie, medido:</span>
+<span class="c">// 2 GB × 1,86 s = 3,72 GB-s</span>
+<span class="kw">≈</span> US$ <span class="s">0,00005</span> por execução</div>
   </div>
   <p class="src reveal d5">preços on-demand das páginas oficiais da AWS, consultados em 10/11/2026 · sem Free Tier</p>
 </section></div></div>
