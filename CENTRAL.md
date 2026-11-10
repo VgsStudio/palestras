@@ -47,7 +47,7 @@ chat — nenhum dos dois editores faz isso.
   Chrome/Edge, sem build, exige a pasta do repo aberta no disco. Salvar
   não mexe em git, então o fluxo de conferir (`git diff`) e publicar
   continua igual.
-- **Hospedado**, em `slides.vsoller.com.br` — mesma engine de edição,
+- **Hospedado**, em `deck.vsoller.com.br` (antes `slides.vsoller.com.br`; o repo `slides-editor` virou `deck-editor`) — mesma engine de edição,
   mas pelo navegador de qualquer lugar, atrás de login (Cognito + MFA,
   só o Vitor tem acesso). "Publicar" já commita direto neste repo (via
   API do GitHub) e atualiza o site na hora — não precisa git diff local
@@ -173,6 +173,25 @@ lugar de serviço. Os ícones ficam em `images/aws/` dentro da palestra.
 **Certificações:** a fonte da verdade é o Credly público,
 `credly.com/users/vitor-guirao-soller` (JSON em `/users/vitor-guirao-soller/badges.json`).
 Em nov/2026 eram 12 "AWS Certified". "Early Adopter" e badges de treinamento não contam.
+
+**Estrutura obrigatória de cada slide (senão o editor quebra):** os dois
+editores (`deck.vsoller.com.br` e `_editor/`) acham os slides procurando
+`.slide-viewport` **no HTML salvo**. Por isso todo slide precisa estar
+escrito no arquivo já envolvido:
+
+```html
+<div class="slide-viewport"><div class="slide-scale"><section class="slide …">
+  …
+</section></div></div>
+```
+
+O chassis sabe criar esses invólucros sozinho em tempo de execução, então o
+deck parece normal no navegador. Mas, se eles não estiverem no arquivo, o
+editor abre tudo como "um slide só". Isso aconteceu na palestra serverless
+(nov/2026), que foi escrita à mão sem os invólucros. Agora o
+`scripts/build-manifest.mjs` falha o build quando o número de
+`<section class="slide">` não bate com o de `.slide-viewport`, e nada
+publica nesse estado.
 
 **Diagramas (draw.io):** a fonte fica em `<slug>/diagramas/diagramas.drawio`,
 com uma página por diagrama, estilos `mxgraph.aws4.resourceIcon` e cores

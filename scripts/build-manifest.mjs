@@ -37,6 +37,15 @@ for (const slug of slugs) {
   let href = meta.href
   if (meta.type === 'html') {
     href = `/materiais/${slug}/`
+    // Os editores (deck.vsoller.com.br e _editor/) acham os slides por
+    // .slide-viewport no HTML salvo. Deck do chassis sem esses invólucros
+    // abre no editor como "um slide só", então não publica.
+    const html = readFileSync(join(dir, 'index.html'), 'utf8')
+    const slides = (html.match(/<section class="slide[\s"]/g) || []).length
+    const viewports = (html.match(/class="slide-viewport"/g) || []).length
+    if (slides > 0 && viewports !== slides) {
+      throw new Error(`${slug}: ${slides} <section class="slide"> mas ${viewports} .slide-viewport — envolva cada slide em <div class="slide-viewport"><div class="slide-scale">…</div></div> (ver CENTRAL.md)`)
+    }
     cpSync(dir, join(DIST, slug), { recursive: true, filter: (src) => !src.endsWith('meta.json') })
   } else if (meta.type === 'file') {
     const files = readdirSync(dir).filter((f) => f !== 'meta.json')
