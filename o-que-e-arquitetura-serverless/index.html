@@ -1455,18 +1455,29 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 
 <!-- 10 · DEV COMMUNITY (diagrama 03) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro 00:21–00:25 · Case pessoal. Navegador autentica no Cognito e recebe token; chamada com token vai ao API Gateway; Lambda executa e acessa DynamoDB. Cognito ao lado, não no caminho de toda chamada. Não faz parte da demo da selfie. -->
+  <!-- roteiro 00:21–00:25 · Case pessoal. Login no Cognito devolve o token. Toda rota do API Gateway tem authorizer, que valida o token com o Cognito antes de invocar a Lambda; token inválido nem chega no código. Fluxo síncrono: a resposta volta na mesma requisição. Não faz parte da demo da selfie. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> um caso real meu</span>
   <h2 class="reveal d2">Uma base da <em>Dev Community.</em></h2>
   <div class="slot diagram reveal d3" data-diagram="03-dev-community">
-    <img src="diagramas/03-dev-community.svg" alt="Navegador autentica no Cognito, chama o API Gateway com token, Lambda executa e acessa o DynamoDB" onerror="this.remove()">
+    <img src="diagramas/03-dev-community.svg" alt="Navegador faz login no Cognito; cada chamada ao API Gateway passa por um authorizer que valida o token no Cognito antes de invocar a Lambda, que acessa o DynamoDB" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 03 · draw.io</b><br>Cognito (ao lado) · Navegador → API Gateway → Lambda → DynamoDB</div>
   </div>
 </section></div></div>
 
-<!-- 11 · ESTADO -->
+<!-- 11 · ASSÍNCRONO (diagrama 04) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro 00:25–00:28 · Começar pelos padrões de acesso: buscar trabalho por ID, listar os da sessão. Foto no S3; dono e estado no DynamoDB. Identificador não é credencial. Atualização condicional importa. NoSQL não substitui SQL em tudo. -->
+  <!-- roteiro 00:25–00:29 · Contraste: o caso da Dev Community é síncrono; a selfie é assíncrona. Linha síncrona espera tudo; assíncrona devolve ID + autorização de upload na hora. Upload concluído ≠ imagem pronta. HTTP pode iniciar processo assíncrono. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> síncrono × assíncrono</span>
+  <h2 class="reveal d2">Recebido não significa <em>concluído.</em></h2>
+  <div class="slot diagram reveal d3" data-diagram="04-sincrono-assincrono">
+    <img src="diagramas/04-sincrono-assincrono.svg" alt="Duas linhas do tempo: pedir e esperar, contra receber e acompanhar" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 04 · draw.io</b><br>Pedir e esperar  ×  receber um ID e acompanhar</div>
+  </div>
+</section></div></div>
+
+<!-- 12 · ESTADO -->
+<div class="slide-viewport"><div class="slide-scale"><section class="slide">
+  <!-- roteiro 00:29–00:32 · Se é assíncrono, alguém precisa guardar o status: é isso que o celular consulta. Começar pelos padrões de acesso: buscar trabalho por ID, listar os da sessão. Foto no S3; dono e estado no DynamoDB. Identificador não é credencial. Atualização condicional importa. NoSQL não substitui SQL em tudo. -->
   <div class="split half">
     <div>
       <div class="ico-row reveal d1" style="margin-bottom:28px"><img class="ico-lg" src="images/aws/s3.svg" alt=""><img class="ico-lg" src="images/aws/dynamodb.svg" alt=""></div>
@@ -1484,17 +1495,6 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
         <dt>expiresAt</dt><dd>+24 h (TTL)</dd>
       </dl>
     </div>
-  </div>
-</section></div></div>
-
-<!-- 12 · ASSÍNCRONO (diagrama 04) -->
-<div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro 00:28–00:32 · Linha síncrona espera tudo; assíncrona devolve ID + autorização de upload na hora. Upload concluído ≠ imagem pronta. HTTP pode iniciar processo assíncrono. -->
-  <span class="eyebrow reveal d1"><span class="sl">//</span> síncrono × assíncrono</span>
-  <h2 class="reveal d2">Recebido não significa <em>concluído.</em></h2>
-  <div class="slot diagram reveal d3" data-diagram="04-sincrono-assincrono">
-    <img src="diagramas/04-sincrono-assincrono.svg" alt="Duas linhas do tempo: pedir e esperar, contra receber e acompanhar" onerror="this.remove()">
-    <div class="hint"><b>DIAGRAMA 04 · draw.io</b><br>Pedir e esperar  ×  receber um ID e acompanhar</div>
   </div>
 </section></div></div>
 
