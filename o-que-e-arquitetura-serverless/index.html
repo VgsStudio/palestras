@@ -1459,10 +1459,19 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 
 <!-- 10 · DEV COMMUNITY (diagrama 03) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro 00:21–00:25 · Case pessoal. Login no Cognito devolve o token. Toda rota do API Gateway tem authorizer, que valida o token com o Cognito antes de invocar a Lambda; token inválido nem chega no código. Fluxo síncrono: a resposta volta na mesma requisição. Não faz parte da demo da selfie. -->
-  <span class="eyebrow reveal d1"><span class="sl">//</span> um caso real meu</span>
-  <h2 class="reveal d2">Uma base da <em>Dev Community.</em></h2>
-  <div class="slot diagram reveal d3" data-diagram="03-dev-community">
+  <!-- roteiro 00:21–00:25 · Case pessoal. Código aberto: github.com/Maua-Dev/clean_mss_template (template de microsserviços em Clean Arch, Python). Login no Cognito devolve o token. Toda rota do API Gateway tem authorizer, que valida o token com o Cognito antes de invocar a Lambda; token inválido nem chega no código. Fluxo síncrono: a resposta volta na mesma requisição. Não faz parte da demo da selfie. -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 40px;">
+    <div>
+      <span class="eyebrow reveal d1"><span class="sl">//</span> um caso real meu</span>
+      <h2 class="reveal d2">Uma base da <em>Dev Community.</em></h2>
+      <p class="reveal d3" style="font-family: var(--font-mono); font-size: 24px; margin-top: 14px;">github.com/Maua-Dev/clean_mss_template</p>
+    </div>
+    <div class="reveal-scale d4" style="display: flex; align-items: center; gap: 18px;">
+      <span style="font-family: var(--font-mono); font-size: 18px; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); text-align: right; line-height: 1.5;">template<br>open source</span>
+      <div class="slot" style="width: 170px; height: 170px; background: #fff; border-radius: 14px; border: 1px solid var(--border);"><img style="width: 100%; height: 100%; padding: 12px; max-height: none;" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data=https://github.com/Maua-Dev/clean_mss_template" alt="QR code para o repositório clean_mss_template da Dev Community Mauá"></div>
+    </div>
+  </div>
+  <div class="slot diagram reveal d3" data-diagram="03-dev-community" style="height: 580px; margin-top: 30px;">
     <img src="diagramas/03-dev-community.svg" alt="Navegador faz login no Cognito; cada chamada ao API Gateway passa por um authorizer que valida o token no Cognito antes de invocar a Lambda, que acessa o DynamoDB" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 03 · draw.io</b><br>Cognito (ao lado) · Navegador → API Gateway → Lambda → DynamoDB</div>
   </div>
