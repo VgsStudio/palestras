@@ -1443,9 +1443,9 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 <span class="kw">export async function</span> <span class="f">render</span>({ jobId, formato }) {
   <span class="c">// o evento traz a referência,</span>
   <span class="c">// não a foto inteira</span>
-  <span class="kw">const</span> foto = <span class="kw">await</span> s3.get(<span class="s">`entrada/${jobId}`</span>);
+  <span class="kw">const</span> foto = <span class="kw">await</span> s3.get(<span class="s">`uploads/${jobId}/original`</span>);
   <span class="kw">const</span> arte = <span class="kw">await</span> <span class="f">aplicarMoldura</span>(foto, formato);
-  <span class="kw">await</span> s3.put(<span class="s">`saida/${jobId}/${formato}`</span>, arte);
+  <span class="kw">await</span> s3.put(<span class="s">`outputs/${jobId}/${formato}.jpg`</span>, arte);
   <span class="kw">return</span> { jobId, formato };
 }</div>
       <div class="code-cap">serverless-selfie-sbg · services/pipeline.ts</div>
