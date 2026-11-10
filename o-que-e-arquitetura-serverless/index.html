@@ -1351,7 +1351,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
 <!-- 3 · GANCHO -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
   <!-- roteiro 00:03–00:05 · Perguntar quem já publicou um site ou usou uma API. Mostrar o resultado antes dos serviços. Ninguém precisa de conta AWS, cadastro ou login. Story é voluntário. -->
-  <span class="eyebrow reveal d1"><span class="sl">//</span> daqui a pouco, cada um aqui sai com uma selfie</span>
+  <span class="eyebrow reveal d1"><span class="sl">//</span> em 5 minutos, cada um aqui vai ter uma selfie</span>
   <h2 class="reveal d2">Da foto ao resultado.<br>O que acontece <em>no meio?</em></h2>
   <div class="path">
     <span class="chip reveal d3">Enviar</span><b class="reveal d3">→</b>
@@ -1365,10 +1365,46 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 4 · REQUISIÇÃO (diagrama 01) -->
+<!-- 4 · O APP -->
+<div class="slide-viewport"><div class="slide-scale"><section class="slide">
+  <!-- roteiro 00:03–00:05 · Mostrar o resultado antes da teoria: é isso que vocês vão gerar daqui a pouco. Mostrar a saída real da moldura (imagem de exemplo). Story 1080×1920 e quadrado 1080×1080. Sem reconhecimento facial; não projetar selfie de ninguém sem consentimento. -->
+  <div class="split half">
+    <div>
+      <span class="eyebrow reveal d1"><span class="sl">//</span> o projeto de hoje</span>
+      <h2 class="reveal d2">Serverless<br><em>Selfie SBG.</em></h2>
+      <p class="lead reveal d3">Sem cadastro.<br>Sem login.<br>Sem conta AWS.</p>
+      <p class="src reveal d4">saída real do pipeline · Story 1080×1920 e quadrado 1080×1080</p>
+    </div>
+    <div class="shots">
+      <div class="phone reveal-scale d3"><img src="images/selfie-story-exemplo.jpg" alt="Story gerado com a moldura do Student Builder Group, com a foto do Vitor"></div>
+      <div class="square reveal-scale d5"><img src="images/selfie-square-exemplo.jpg" alt="Versão quadrada gerada com a moldura"></div>
+    </div>
+  </div>
+</section></div></div>
+
+<!-- 5 · DEMO -->
+<div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
+  <!-- roteiro 00:05–00:09 · Primeira parte da demo: todo mundo abre o site no celular e gera a selfie AGORA. Não esperar terminar: o processamento roda enquanto eu explico. Quem não quiser foto usa a imagem de exemplo. CONFIRMAR A URL APÓS O DEPLOY. -->
+  <div class="split half">
+    <div>
+      <h1 class="reveal d1">Agora,<br><em>é com vocês.</em></h1>
+      <div class="steps">
+        <p class="reveal d2"><span>01</span>Abra o site.</p>
+        <p class="reveal d3"><span>02</span>Gere sua moldura.</p>
+        <p class="reveal d4"><span>03</span>Baixe ou compartilhe.</p>
+      </div>
+    </div>
+    <div class="qr qr-hero reveal-scale d3">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&amp;data=https://serverless-selfie.vsoller.com.br" alt="QR code para o Serverless Selfie SBG"></div>
+      <span class="cap">serverless-selfie.vsoller.com.br</span>
+    </div>
+  </div>
+</section></div></div>
+
+<!-- 6 · REQUISIÇÃO (diagrama 01) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:05–00:08 · Navegador → servidor → banco, numerar 1 requisição HTTP, 2 lógica, 3 leitura/escrita, 4 resposta. Sem ícones AWS. Servidor é um papel: quem atende pedidos. Credencial privilegiada nunca no cliente. -->
-  <span class="eyebrow reveal d1"><span class="sl">//</span> antes da nuvem</span>
+  <span class="eyebrow reveal d1"><span class="sl">//</span> o que aconteceu quando vocês clicaram</span>
   <h2 class="reveal d2">O clique não termina no botão.</h2>
   <div class="slot diagram reveal d3" data-diagram="01-requisicao">
     <img src="diagramas/01-requisicao.svg" alt="Navegador envia requisição ao servidor, que lê e escreve no banco e devolve a resposta" onerror="this.remove()">
@@ -1376,7 +1412,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 5 · RESPONSABILIDADES -->
+<!-- 7 · RESPONSABILIDADES -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:08–00:11 · A divisão varia por serviço. Região sem aula de todas as regiões. Segurança continua compartilhada: AWS cuida "da" nuvem, você cuida do que põe "na" nuvem. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> quem administra o quê?</span>
@@ -1394,7 +1430,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <div class="legend reveal d5"><span><i style="background:color-mix(in srgb,#F59D01 30%,#fff)"></i>você administra</span><span><i style="background:color-mix(in srgb,#655CC6 22%,#fff)"></i>o provedor administra</span><span>simplificado · a divisão varia por serviço</span></div>
 </section></div></div>
 
-<!-- 6 · ESCALA -->
+<!-- 8 · ESCALA -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:11–00:15 · Escalabilidade ≠ elasticidade. Concorrência = trabalho simultâneo, não cliques acumulados. Aproximação: concorrência ≈ requisições/s × duração média. Dez pessoas não provam escala de produção. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> ilustração conceitual, não medição</span>
@@ -1406,14 +1442,14 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 7 · STATEMENT -->
+<!-- 9 · STATEMENT -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide dk st">
   <!-- roteiro 00:15–00:16:30 · Infra gerenciada pelo provedor, mas código, dados e permissões continuam sendo decisão nossa. Nem todo serviço tem custo ocioso zero. Cold start existe. -->
   <h1 class="reveal-scale d1">Serverless não é<br><em>sem servidor.</em></h1>
   <p class="kick step" style="margin-top: 54px;">É menos infraestrutura pra administrar.<br>Não menos decisões pra tomar.</p>
 </section></div></div>
 
-<!-- 8 · MAPA DE SERVIÇOS -->
+<!-- 10 · MAPA DE SERVIÇOS -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:16:30–00:18 · Seis responsabilidades, não uma aula de cada produto. Destaque nos usados na demo. Fargate mostra que serverless vai além de funções. Nem todos escalam a zero. Fonte: docs.aws.amazon.com -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> laranja = usado na demo de hoje</span>
@@ -1428,7 +1464,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 9 · LAMBDA -->
+<!-- 11 · LAMBDA -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:18–00:21 · Handler recebe evento. O evento carrega referência (bucket/chave), não a foto. Estado durável fica fora da função: não confiar na memória entre invocações. -->
   <div class="split half">
@@ -1453,7 +1489,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 10 · DEV COMMUNITY (diagrama 03) -->
+<!-- 12 · DEV COMMUNITY (diagrama 03) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:21–00:25 · Case pessoal. Login no Cognito devolve o token. Toda rota do API Gateway tem authorizer, que valida o token com o Cognito antes de invocar a Lambda; token inválido nem chega no código. Fluxo síncrono: a resposta volta na mesma requisição. Não faz parte da demo da selfie. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> um caso real meu</span>
@@ -1464,7 +1500,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 11 · ASSÍNCRONO (diagrama 04) -->
+<!-- 13 · ASSÍNCRONO (diagrama 04) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:25–00:29 · Contraste: o caso da Dev Community é síncrono; a selfie é assíncrona. Linha síncrona espera tudo; assíncrona devolve ID + autorização de upload na hora. Upload concluído ≠ imagem pronta. HTTP pode iniciar processo assíncrono. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> síncrono × assíncrono</span>
@@ -1475,7 +1511,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 12 · ESTADO -->
+<!-- 14 · ESTADO -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:29–00:32 · Se é assíncrono, alguém precisa guardar o status: é isso que o celular consulta. Começar pelos padrões de acesso: buscar trabalho por ID, listar os da sessão. Foto no S3; dono e estado no DynamoDB. Identificador não é credencial. Atualização condicional importa. NoSQL não substitui SQL em tudo. -->
   <div class="split half">
@@ -1498,7 +1534,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 13 · EVENTO (diagrama 05) -->
+<!-- 15 · EVENTO (diagrama 05) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:32–00:35 · Navegador envia bytes direto ao S3; S3 emite evento; EventBridge leva ao Step Functions. Seta de arquivo ≠ seta de evento. Alternativa simples: S3 → Lambda direto. EventBridge se justifica pelo roteamento. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> arquitetura orientada a eventos</span>
@@ -1509,7 +1545,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 14 · TRÊS PAPÉIS -->
+<!-- 16 · TRÊS PAPÉIS -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
   <!-- roteiro 00:35–00:38 · "Imagem enviada" é fato; "gere uma moldura" é pedido. Fila amortece picos, mas não entra no MVP só pra ter mais ícone. Event-driven não exige EventBridge. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> parecidos, mas não iguais</span>
@@ -1521,7 +1557,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 15 · WORKFLOW (diagrama 06) -->
+<!-- 17 · WORKFLOW (diagrama 06) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
   <!-- roteiro 00:38–00:42 · claim (idempotência + lease) → validate → render story ‖ render square → concluir. Retry limitado pra falha transitória, Catch pra erro final. Duplicata não marca o original como falha. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> AWS Step Functions</span>
@@ -1532,7 +1568,7 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   </div>
 </section></div></div>
 
-<!-- 16 · IDEMPOTÊNCIA -->
+<!-- 18 · IDEMPOTÊNCIA -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
   <!-- roteiro 00:42–00:45 · S3 entrega notificação pelo menos uma vez, sem garantia de ordem. Atualização condicional + lease recuperável. Buckets de entrada e saída separados evitam loop. Fonte: docs S3 event notifications. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> o S3 entrega eventos "pelo menos uma vez"</span>
@@ -1545,50 +1581,14 @@ body[data-no-chrome] .artifact-editor-toggle { display: none; }
   <p class="kick step" style="margin-top: 56px;">Idempotência: repetir sem duplicar o efeito.</p>
 </section></div></div>
 
-<!-- 17 · O APP -->
+<!-- 19 · ARQUITETURA COMPLETA (diagrama 07) -->
 <div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro 00:45–00:48 · Mostrar a saída real da moldura (imagem de exemplo). Story 1080×1920 e quadrado 1080×1080. Sem reconhecimento facial; não projetar selfie de ninguém sem consentimento. -->
-  <div class="split half">
-    <div>
-      <span class="eyebrow reveal d1"><span class="sl">//</span> o projeto de hoje</span>
-      <h2 class="reveal d2">Serverless<br><em>Selfie SBG.</em></h2>
-      <p class="lead reveal d3">Sem cadastro.<br>Sem login.<br>Sem conta AWS.</p>
-      <p class="src reveal d4">saída real do pipeline · Story 1080×1920 e quadrado 1080×1080</p>
-    </div>
-    <div class="shots">
-      <div class="phone reveal-scale d3"><img src="images/selfie-story-exemplo.jpg" alt="Story gerado com a moldura do Student Builder Group, com a foto do Vitor"></div>
-      <div class="square reveal-scale d5"><img src="images/selfie-square-exemplo.jpg" alt="Versão quadrada gerada com a moldura"></div>
-    </div>
-  </div>
-</section></div></div>
-
-<!-- 18 · ARQUITETURA COMPLETA (diagrama 07) -->
-<div class="slide-viewport"><div class="slide-scale"><section class="slide">
-  <!-- roteiro 00:48–00:51 · Três faixas: borda (CloudFront + S3 site), API (API Gateway, Lambda, DynamoDB, sessão anônima por cookie), pipeline (S3 entrada, EventBridge, Step Functions, Lambdas, S3 saída). CloudWatch transversal. Sem Cognito pra turma (Cognito só no painel do apresentador). Infra em CDK no repo. -->
+  <!-- roteiro 00:48–00:51 · Três faixas: borda (CloudFront + S3 site), API (API Gateway, Lambda, DynamoDB, sessão anônima por cookie), pipeline (S3 entrada, EventBridge, Step Functions, Lambdas, S3 saída). CloudWatch transversal. Sem Cognito pra turma (Cognito só no painel do apresentador). Infra em CDK no repo.  SEGUNDA PARTE DA DEMO (~10 min): abrir o console e seguir o jobId de uma selfie da turma no S3 (uploads/ → outputs/), no Step Functions e no DynamoDB; opcional lote sintético e demo de Retry; fechar no dashboard do CloudWatch. Não depurar mais de 2 min no palco. -->
   <span class="eyebrow reveal d1"><span class="sl">//</span> tudo junto</span>
   <h2 class="reveal d2">A arquitetura <em>por trás da selfie.</em></h2>
   <div class="slot diagram reveal d3" data-diagram="07-arquitetura-selfie" style="height: 790px; margin-top: 24px;">
     <img style="padding: 8px" src="diagramas/07-arquitetura-selfie.svg" alt="Arquitetura completa do Serverless Selfie SBG" onerror="this.remove()">
     <div class="hint"><b>DIAGRAMA 07 · draw.io</b><br>CloudFront · API Gateway · Lambda · DynamoDB · S3 · EventBridge · Step Functions · CloudWatch</div>
-  </div>
-</section></div></div>
-
-<!-- 19 · DEMO -->
-<div class="slide-viewport"><div class="slide-scale"><section class="slide dk">
-  <!-- roteiro 00:51–01:05 · 0–3 min: abrir no celular do palestrante, gerar moldura. 3–6: seguir o jobId no S3, Step Functions e DynamoDB. 6–9 (opcional): lote sintético. 9–11 (opcional): demo de Retry. 11–14: dashboard CloudWatch. Não depurar mais de 2 min no palco. CONFIRMAR A URL APÓS O DEPLOY. -->
-  <div class="split half">
-    <div>
-      <h1 class="reveal d1">Agora,<br><em>é com vocês.</em></h1>
-      <div class="steps">
-        <p class="reveal d2"><span>01</span>Abra o site.</p>
-        <p class="reveal d3"><span>02</span>Gere sua moldura.</p>
-        <p class="reveal d4"><span>03</span>Baixe ou compartilhe.</p>
-      </div>
-    </div>
-    <div class="qr qr-hero reveal-scale d3">
-      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&amp;data=https://serverless-selfie.vsoller.com.br" alt="QR code para o Serverless Selfie SBG"></div>
-      <span class="cap">serverless-selfie.vsoller.com.br</span>
-    </div>
   </div>
 </section></div></div>
 
