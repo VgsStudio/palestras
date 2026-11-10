@@ -116,6 +116,7 @@ prenderam ou perderam a atenção).
 |---|---|---|---|---|
 | certificado-antes-de-formado | 17 | — | — | — |
 | franscarmo-engenharia-computacao | 26 | 45 min | — | preencher depois de apresentar |
+| o-que-e-arquitetura-serverless (SBG IMT, 14/11/2026) | 23 | 75 min + 15 perguntas | — | ~14 min são demo ao vivo; preencher depois |
 
 ## Lições e correções recorrentes
 
@@ -155,6 +156,24 @@ Regra geral: **qualquer palestra que vier de uma ferramenta externa
 antes de publicar** — não é só estética, é sempre assumir que "gerado
 por X" não deveria aparecer no seu próprio site.
 
+**Export novo do ClickUp Brain: "slide-kit" em React (nov/2026).** Além do
+formato chassis, o Brain agora pode exportar um bundle React de ~1,2 MB
+(`<div id="root">`, `slide-kit`, editor e colaboração embutidos). Esse formato
+não serve pra publicar. O conteúdo fica nas chamadas `E("texto","id.t")` do
+`App.jsx` compilado, perto do fim do `<script>`, e as notas do apresentador
+ficam num array `zxe`. O caminho é extrair texto e notas e remontar o deck no
+chassis (copiando `<style>` e `<script>` de uma palestra publicada). As notas
+do apresentador viram comentários HTML `<!-- roteiro ... -->` em cada slide.
+
+**Sobre ícones (pedido do Vitor):** usar **sempre os ícones oficiais de
+arquitetura da AWS** (Architecture Icons, aws.amazon.com/architecture/icons,
+pasta `Arch_*/64/*.svg`), nunca glifo improvisado como "λ" ou setas Unicode no
+lugar de serviço. Os ícones ficam em `images/aws/` dentro da palestra.
+
+**Certificações:** a fonte da verdade é o Credly público,
+`credly.com/users/vitor-guirao-soller` (JSON em `/users/vitor-guirao-soller/badges.json`).
+Em nov/2026 eram 12 "AWS Certified". "Early Adopter" e badges de treinamento não contam.
+
 **Sobre imagens:**
 - Prioridade: foto real já existente (do portfólio, do LinkedIn, de
   artigos antigos) > imagem com licença clara e creditada (Wikimedia
@@ -181,6 +200,11 @@ por X" não deveria aparecer no seu próprio site.
   `dist/<slug>` gerado pelo script) antes do push é mais confiável do que
   confiar em print de navegador remoto — a ferramenta de screenshot
   automatizada é instável nesta configuração, não vale insistir nela.
+  *Atualização (nov/2026):* o Edge headless funciona bem quando cada slide é
+  isolado: uma cópia temporária do HTML com `scroll-snap-type:none`, reveals
+  forçados visíveis e um script que esconde todo `.slide-viewport` menos o de
+  `?n=N`, depois `msedge --headless=new --window-size=1920,1080 --screenshot`.
+  Navegar por `#slide-N` gera print deslocado, por causa do smooth scroll.
 
 **Sobre pedidos ambíguos do Vitor:**
 - Quando um pedido de mudança tem duas leituras plausíveis (ex: "troca o

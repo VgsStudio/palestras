@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="pt-BR" dir="ltr"><head><meta charset="utf-8"><base href="."><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>O que é arquitetura Serverless?</title>
+<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;%F0%9F%A4%93&lt;/text&gt;&lt;/svg&gt;">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap">
+</head><body class="chassis-cursor-active">
+<!-- skill:chassis -->
+<style>
+/* =====================================================
+   PRESENTATION CHASSIS — style-invariant base styles
+   Fixed 1920×1080 canvas scaled to fit any viewport.
+   Customize colors, fonts, and chrome via :root tokens.
+   ===================================================== */
+
+/* ---------- Universal reset ---------- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ---------- Theme tokens (override in your deck's CSS) ---------- */
+:root {
+    color-scheme: light;
+
+    --background:      #ffffff;
+    --foreground:      #111111;
+    --card:            #f5f5f5;
+    --card-foreground: var(--foreground);
+    --accent:          #c94a3d;
+    --accent-foreground: #ffffff;
+
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --border:           color-mix(in srgb, var(--foreground) 12%, transparent);
+
+    --font-display: Georgia, serif;
+    --font-body: -apple-system, system-ui, sans-serif;
+    --font-mono: ui-monospace, monospace;
+
+    /* Reveal animation */
+    --reveal-duration: 0.8s;
+    --reveal-ease:     cubic-bezier(0.16, 1, 0.3, 1);
+    --reveal-distance: 28px;
+
+    /* Chrome (nav dots, keyboard hint) */
+    --nav-dot-size: 9px;
+    --nav-dot-radius: 50%;
+    --nav-dot-color: var(--foreground);
+    --nav-dot-active-color: var(--accent);
+    --nav-dot-opacity: 0.4;
+}
+
+/* ---------- Viewport lock + scroll snap ---------- */
+html, body { height: 100%; overflow-x: hidden; }
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+}
+
+html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+/* ---------- Type scale ----------
+   Fixed px sizes on a 1920×1080 canvas. The canvas is scaled to fit
+   any viewport via transform, so these sizes are absolute within the
+   design surface — no responsive units needed. */
+body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 36px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1 { font-size: 120px; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 64px; line-height: 1.1; letter-spacing: -0.01em; }
+h3 { font-size: 44px; line-height: 1.2; }
+.eyebrow {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+ul, ol { padding-left: 48px; display: flex; flex-direction: column; gap: 24px; }
+li::marker { color: var(--accent); }
+
+/* ---------- Slide structure ----------
+   .slide is the authored 1920×1080 artboard.
+   The chassis wraps it in viewport + scale layers at runtime. */
+.slide-viewport {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: block;
+    position: relative;
+    background: var(--background);
+    isolation: isolate;
+    z-index: 1;
+}
+
+.slide-scale {
+    width: 1920px;
+    height: 1080px;
+    transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+    transform-origin: center center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+}
+
+.slide {
+    width: 1920px;
+    height: 1080px;
+    padding: 80px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    background: transparent;
+}
+
+
+/* ---------- Image defaults ---------- */
+img, .image-container {
+    max-width: 100%;
+    max-height: 540px;
+    object-fit: contain;
+}
+
+/* ---------- Reveal primitives ----------
+   Driven by chassis.js via the Web Animations API, not CSS transitions.
+   Put .reveal* or .step on ANY element — author CSS on the same element
+   (opacity, transform, transition, filter) never conflicts, because
+   WAAPI animations live in the animation cascade origin and win over
+   normal author declarations. The .dN stagger classes below still apply
+   to theme-authored CSS animations via animation-delay.
+
+   Variants: .reveal (fade + up), .reveal-left, .reveal-right,
+   .reveal-scale, .reveal-blur. .step stays hidden until the user
+   advances forward. Don't combine .step with .reveal* on the same
+   element. */
+
+/* FOUC guard: hide reveals until chassis.js marks the document ready. */
+:root:not(.reveals-ready) .reveal,
+:root:not(.reveals-ready) .reveal-left,
+:root:not(.reveals-ready) .reveal-right,
+:root:not(.reveals-ready) .reveal-scale,
+:root:not(.reveals-ready) .reveal-blur,
+:root:not(.reveals-ready) .step {
+    opacity: 0;
+}
+:root:not(.reveals-ready) .reveal-blur { filter: blur(10px); }
+
+/* ---------- Stagger delays (.d1 … .d8) ---------- */
+.slide.visible .d1 { transition-delay: 0.10s; animation-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.25s; animation-delay: 0.25s; }
+.slide.visible .d3 { transition-delay: 0.40s; animation-delay: 0.40s; }
+.slide.visible .d4 { transition-delay: 0.55s; animation-delay: 0.55s; }
+.slide.visible .d5 { transition-delay: 0.70s; animation-delay: 0.70s; }
+.slide.visible .d6 { transition-delay: 0.85s; animation-delay: 0.85s; }
+.slide.visible .d7 { transition-delay: 1.00s; animation-delay: 1.00s; }
+.slide.visible .d8 { transition-delay: 1.15s; animation-delay: 1.15s; }
+
+/* ---------- Nav dots ----------
+   Default: right-center (vertical stack on right edge).
+   Override with <body data-nav="bottom | top-right | hidden">. */
+.nav-dots {
+    position: fixed;
+    right: clamp(0.6rem, 1.5vw, 1.4rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.5rem, 1vh, 0.8rem);
+    z-index: 50;
+}
+
+body[data-nav="bottom"] .nav-dots {
+    right: auto;
+    top: auto;
+    bottom: clamp(1rem, 2.5vh, 2rem);
+    left: 50%;
+    transform: translateX(-50%);
+    flex-direction: row;
+}
+
+body[data-nav="top-right"] .nav-dots {
+    right: clamp(1rem, 2.5vw, 2rem);
+    top: clamp(1rem, 2.5vh, 2rem);
+    transform: none;
+    flex-direction: row;
+}
+
+body[data-nav="hidden"] .nav-dots { display: none; }
+
+body[data-nav="bottom"] .keyboard-hint {
+    left: clamp(1rem, 2vw, 1.5rem);
+    transform: none;
+}
+
+.nav-dots button {
+    width: var(--nav-dot-size);
+    height: var(--nav-dot-size);
+    border-radius: var(--nav-dot-radius);
+    border: 1.5px solid var(--nav-dot-color);
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: var(--nav-dot-opacity);
+}
+.nav-dots button:hover { opacity: 0.85; transform: scale(1.15); }
+.nav-dots button:focus-visible {
+    outline: 2px solid var(--nav-dot-active-color);
+    outline-offset: 3px;
+    opacity: 1;
+}
+.nav-dots button.active {
+    background: var(--nav-dot-active-color);
+    border-color: var(--nav-dot-active-color);
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ---------- Keyboard hint ---------- */
+.keyboard-hint {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.keyboard-hint kbd {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 0.9em;
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--background);
+    margin: 0 0.15em;
+}
+
+/* ---------- Credit line ---------- */
+.chassis-credit {
+    position: fixed;
+    bottom: clamp(0.6rem, 1.2vh, 1rem);
+    left: clamp(1rem, 2vw, 1.5rem);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--muted-foreground);
+    letter-spacing: 0.02em;
+    z-index: 50;
+    opacity: 0.7;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+.chassis-credit .chassis-credit-emoji {
+    font-style: normal;
+    margin: 0 0.15em;
+}
+
+body[data-nav="bottom"] .chassis-credit {
+    left: auto;
+    right: clamp(1rem, 2vw, 1.5rem);
+}
+
+/* ---------- Custom cursor ---------- */
+.chassis-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: var(--accent);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    will-change: transform;
+}
+.chassis-cursor.visible { opacity: 1; }
+body.artifact-editor-editing .chassis-cursor { display: none; }
+
+@media (hover: none) {
+    .chassis-cursor { display: none; }
+}
+
+body.chassis-cursor-active:not(.artifact-editor-editing),
+body.chassis-cursor-active:not(.artifact-editor-editing) * { cursor: none; }
+
+/* ---------- Opt-outs ---------- */
+body[data-no-chrome] .nav-dots,
+body[data-no-chrome] .keyboard-hint,
+body[data-no-chrome] .chassis-credit,
+body[data-no-chrome] .chassis-cursor,
+body[data-no-chrome] .artifact-editor-toggle { display: none; }
+
+:fullscreen .keyboard-hint,
+:fullscreen .chassis-credit,
+:fullscreen .artifact-editor-toggle { display: none; }
+
+@media (hover: none) {
+    .keyboard-hint,
+    .chassis-credit { display: none; }
+}
+
+@media (max-width: 900px), (max-height: 560px) {
+    .nav-dots,
+    .keyboard-hint,
+    .chassis-credit,
+    .chassis-cursor { display: none; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.2s !important;
+    }
+    html { scroll-behavior: auto; }
+}
+
+/* ---------- Print (PDF export) ---------- */
+@media print {
+    .nav-dots, .keyboard-hint, .chassis-credit, .chassis-cursor { display: none !important; }
+    html, body { height: auto; overflow: visible; }
+    html { scroll-snap-type: none; }
+    .slide-viewport {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+    }
+    .slide-scale {
+        position: static !important;
+        transform: none !important;
+        width: 100% !important;
+        height: auto !important;
+    }
+    .slide {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+</style>
+<script data-activated="true">
+/* =====================================================
+   PRESENTATION CHASSIS — slide controller
+   Auto-initializes on DOMContentLoaded.
+   Exposes window.slides for programmatic control.
+   ===================================================== */
+(function () {
+    'use strict';
+
+    const REVEAL_SELECTOR = '.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur';
+    const STEP_SELECTOR = '.step';
+    const ALL_REVEAL_SELECTOR = REVEAL_SELECTOR + ', ' + STEP_SELECTOR;
+    const VIEWPORT_CLASS = 'slide-viewport';
+    const SCALE_CLASS = 'slide-scale';
+
+    function _detectLang() {
+        const param = new URLSearchParams(location.search).get('lang');
+        return (param || navigator.language || 'en').slice(0, 2).toLowerCase();
+    }
+
+    class SlidePresentation {
+        constructor() {
+            this.slides = Array.from(document.querySelectorAll('.slide'));
+            if (this.slides.length === 0) return;
+
+            // Ensure every slide has an id so hashes + anchor links work.
+            // Author-defined ids are preserved; the rest get slide-N (1-indexed).
+            this.slides.forEach((slide, idx) => {
+                if (!slide.id) slide.id = `slide-${idx + 1}`;
+            });
+            this.viewports = this._setupViewports();
+            this.scales = this.viewports.map((viewport) => viewport.querySelector(`.${SCALE_CLASS}`));
+
+            // Hide every reveal element BEFORE lifting the CSS FOUC guard.
+            // After this, .reveals-ready is on <html>, so CSS no longer hides
+            // reveals — inline styles keep them hidden until JS animates them.
+            this._setupReveals();
+
+            this.navDotsContainer = this._ensureNavDots();
+            this.keyboardHint = this._ensureKeyboardHint();
+            this.credit = this._ensureCredit();
+
+            this._setupCanvasScale();
+            this._setupIntersectionObserver();
+            this._setupKeyboardNav();
+            this._setupWheelNav();
+            this._setupTouchNav();
+            this._setupViewportSync();
+            this._buildNavDots();
+            this._setupHashNav();
+            this._setupCursor();
+            this._setupPrintSettling();
+
+            // If URL has a matching hash, start there; otherwise start at slide 0.
+            const initial = this._slideIndexFromHash(location.hash);
+            this.currentSlide = initial >= 0 ? initial : 0;
+            if (this.currentSlide !== 0) {
+                this._scrollToSlide(this.currentSlide, 'auto');
+            }
+            // Reveal initial slide immediately (observer may miss it on load).
+            const first = this.slides[this.currentSlide];
+            first.classList.add('visible');
+            this._playSlideReveals(first);
+            this._updateNavDots();
+        }
+
+        /* ---------- Viewport scaffolding ----------
+           Authors write .slide as the 1920×1080 artboard. The chassis wraps
+           that authored section in viewport and scale layers. */
+        _setupViewports() {
+            return this.slides.map((slide) => {
+                const existingScale = slide.parentElement?.classList.contains(SCALE_CLASS)
+                    ? slide.parentElement
+                    : null;
+                const existingViewport = existingScale?.parentElement?.classList.contains(VIEWPORT_CLASS)
+                    ? existingScale.parentElement
+                    : null;
+                if (existingViewport) {
+                    this._syncViewportBackground(slide, existingViewport);
+                    return existingViewport;
+                }
+
+                const viewport = document.createElement('div');
+                viewport.className = VIEWPORT_CLASS;
+                const scale = document.createElement('div');
+                scale.className = SCALE_CLASS;
+
+                slide.parentNode.insertBefore(viewport, slide);
+                viewport.appendChild(scale);
+                scale.appendChild(slide);
+                this._syncViewportBackground(slide, viewport);
+
+                return viewport;
+            });
+        }
+
+        _syncViewportBackground(slide, viewport) {
+            const style = getComputedStyle(slide);
+            const hasBackgroundImage = style.backgroundImage && style.backgroundImage !== 'none';
+            const hasBackgroundColor = !['rgba(0, 0, 0, 0)', 'transparent'].includes(style.backgroundColor);
+            if (hasBackgroundImage || hasBackgroundColor) {
+                viewport.style.background = style.background;
+            } else {
+                viewport.style.background = '';
+            }
+            slide.style.background = 'transparent';
+        }
+
+        /* ---------- DOM scaffolding (auto-inserted if missing) ---------- */
+        _ensureNavDots() {
+            let el = document.getElementById('navDots');
+            if (!el) {
+                el = document.createElement('nav');
+                el.id = 'navDots';
+                el.className = 'nav-dots';
+                el.setAttribute('aria-label', 'Slide navigation');
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureKeyboardHint() {
+            let el = document.querySelector('.keyboard-hint');
+            if (!el) {
+                const i18n = {
+                    en: { navigate: 'navigate', restart: 'restart', fullscreen: 'fullscreen' },
+                    es: { navigate: 'navegar',   restart: 'inicio',   fullscreen: 'fullscreen' },
+                    fr: { navigate: 'naviguer',  restart: 'début',    fullscreen: 'fullscreen' },
+                    de: { navigate: 'blättern',  restart: 'anfang',   fullscreen: 'vollbild' },
+                    pt: { navigate: 'navegar',   restart: 'início',   fullscreen: 'fullscreen' },
+                    ja: { navigate: '移動',      restart: '先頭',      fullscreen: '全画面' },
+                    ko: { navigate: '이동',      restart: '처음',      fullscreen: '전체화면' },
+                    zh: { navigate: '翻页',      restart: '重置',      fullscreen: '全屏' },
+                    it: { navigate: 'navigare',  restart: 'inizio',   fullscreen: 'fullscreen' },
+                    nl: { navigate: 'bladeren',  restart: 'begin',    fullscreen: 'vollscherm' },
+                };
+                const t = i18n[_detectLang()] || i18n.en;
+                el = document.createElement('div');
+                el.className = 'keyboard-hint';
+                el.innerHTML = `<kbd>←</kbd> <kbd>→</kbd> ${t.navigate} &middot; <kbd>R</kbd> ${t.restart} &middot; <kbd>F</kbd> ${t.fullscreen}`;
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        _ensureCredit() {
+            // No credit line — this is Vitor's own deck, not ClickUp's.
+            return null;
+            let el = document.querySelector('.chassis-credit');
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'chassis-credit';
+                el.setAttribute('aria-hidden', 'true');
+                el.innerHTML = '';
+                document.body.appendChild(el);
+            }
+            return el;
+        }
+
+        /* ---------- Reveal engine ----------
+           Reveals are driven by the Web Animations API instead of CSS
+           transitions. This lets authors put .reveal* / .step on any
+           element: animation values live in the animation cascade origin
+           and win over normal author declarations, so no wrapper element
+           is required to isolate the chassis from author CSS.
+
+           State per slide:
+           - "hidden":  inline opacity/transform/filter from the 'from'
+                        keyframe of the variant. Set on init and on
+                        forward re-entry.
+           - "played":  animation is running or has run; the class
+                        `reveals-played` on the slide makes playback
+                        idempotent so observer re-fires (resize,
+                        fullscreen) don't restart the animation.
+           - "settled": animation canceled, inline styles cleared. Used
+                        for backward entries (we skip the animation and
+                        show the final state instantly) and for print. */
+
+        _setupReveals() {
+            // Lift the CSS FOUC guard first so getComputedStyle reads each
+            // element's natural opacity, not the guard's blanket opacity: 0.
+            // No paint occurs mid-task — inline hidden styles are applied
+            // before the browser yields, so there is no visible flash.
+            document.documentElement.classList.add('reveals-ready');
+            this.slides.forEach((slide) => {
+                // Static export: slides that were already revealed when this
+                // file was saved (class="... reveals-played") must stay as
+                // shown — only pre-hide reveals on slides not yet played.
+                const alreadyPlayed = slide.classList.contains('reveals-played');
+                slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                    el._targetOpacity = parseFloat(getComputedStyle(el).opacity);
+                    if (!alreadyPlayed) this._applyHiddenStyle(el);
+                });
+            });
+        }
+
+        _setupPrintSettling() {
+            // Browsers snapshot the document for print/PDF export. WAAPI
+            // animations don't necessarily complete in that snapshot, so
+            // settle every slide to its final state first. After printing,
+            // reset — but only for slides that haven't already been viewed,
+            // so the audience experience picks up where it left off.
+            window.addEventListener('beforeprint', () => {
+                this.slides.forEach((slide) => this._settleSlide(slide));
+            });
+        }
+
+        _readTokens() {
+            const cs = getComputedStyle(document.documentElement);
+            const rawDuration = parseFloat(cs.getPropertyValue('--reveal-duration'));
+            const duration = Number.isFinite(rawDuration) ? rawDuration * 1000 : 800;
+            const ease = cs.getPropertyValue('--reveal-ease').trim() || 'cubic-bezier(0.16, 1, 0.3, 1)';
+            const distance = cs.getPropertyValue('--reveal-distance').trim() || '28px';
+            const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            return {
+                duration: reducedMotion ? 1 : duration,
+                ease,
+                distance,
+            };
+        }
+
+        _getRevealDelay(el) {
+            // Use getAttribute('class') rather than el.className: on SVG
+            // elements, `.className` is an SVGAnimatedString (not a string)
+            // and calling .match on it throws. getAttribute is uniform
+            // across HTML and SVG.
+            const classes = el.getAttribute('class') || '';
+            const m = classes.match(/\bd([1-8])\b/);
+            if (!m) return 0;
+            // Matches CSS .dN: d1 = 100ms, d2 = 250ms, +150ms per step.
+            return 100 + (parseInt(m[1], 10) - 1) * 150;
+        }
+
+        _getRevealKeyframes(el, distance) {
+            const to = el._targetOpacity ?? 1;
+            if (el.classList.contains('reveal-left')) {
+                return [
+                    { opacity: 0, transform: `translateX(calc(-1 * ${distance}))` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-right')) {
+                return [
+                    { opacity: 0, transform: `translateX(${distance})` },
+                    { opacity: to, transform: 'translateX(0)' },
+                ];
+            }
+            if (el.classList.contains('reveal-scale')) {
+                return [
+                    { opacity: 0, transform: 'scale(0.88)' },
+                    { opacity: to, transform: 'scale(1)' },
+                ];
+            }
+            if (el.classList.contains('reveal-blur')) {
+                return [
+                    { opacity: 0, filter: 'blur(10px)' },
+                    { opacity: to, filter: 'blur(0)' },
+                ];
+            }
+            // Default: .reveal or .step (slide up + fade)
+            return [
+                { opacity: 0, transform: `translateY(${distance})` },
+                { opacity: to, transform: 'translateY(0)' },
+            ];
+        }
+
+        _applyHiddenStyle(el) {
+            const { distance } = this._readTokens();
+            const from = this._getRevealKeyframes(el, distance)[0];
+            if ('opacity' in from) el.style.opacity = from.opacity;
+            if ('transform' in from) el.style.transform = from.transform;
+            if ('filter' in from) el.style.filter = from.filter;
+        }
+
+        _clearHiddenStyle(el) {
+            el.style.opacity = '';
+            el.style.transform = '';
+            el.style.filter = '';
+        }
+
+        _cancelReveal(el) {
+            if (el._revealAnim) {
+                el._revealAnim.cancel();
+                el._revealAnim = null;
+            }
+        }
+
+        _playReveal(el, delayOverride) {
+            this._cancelReveal(el);
+            const { duration, ease, distance } = this._readTokens();
+            const delay = typeof delayOverride === 'number' ? delayOverride : this._getRevealDelay(el);
+            const keyframes = this._getRevealKeyframes(el, distance);
+            // fill: 'backwards' applies the 'from' keyframe during the
+            // stagger delay so the element stays hidden until its turn,
+            // without pinning the 'to' keyframe after the animation ends.
+            // This lets co-existing author CSS (e.g. a `.pulse` CSS
+            // animation on the same element) take over naturally once the
+            // entrance completes — otherwise our fill would mask anything
+            // the author wanted to happen post-reveal.
+            const anim = el.animate(keyframes, {
+                duration,
+                delay,
+                easing: ease,
+                fill: 'backwards',
+            });
+            el._revealAnim = anim;
+            // Safe to clear inline 'from' styles now — the animation's
+            // backwards-fill holds the element at the 'from' keyframe for
+            // the duration of any stagger delay.
+            this._clearHiddenStyle(el);
+        }
+
+        _playSlideReveals(slide) {
+            if (slide.classList.contains('reveals-played')) return;
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => this._playReveal(el));
+            // .step elements stay hidden until the user advances.
+        }
+
+        _resetSlideReveals(slide) {
+            // Disabled for this static export: never re-hide content that
+            // was already revealed, so opening or navigating the deck never
+            // makes shown content disappear.
+        }
+
+        _settleSlide(slide) {
+            // Print / PDF export: jump to the final state with everything
+            // shown, so every step appears in the exported document.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(ALL_REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => el.classList.add('step-shown'));
+        }
+
+        _rewindSlide(slide) {
+            // Backward re-entry: show reveals instantly (no replay — the
+            // viewer already saw the intro) but hide every step, so the
+            // slide is positioned at the start of its stepped content and
+            // can be stepped through again.
+            slide.classList.add('reveals-played');
+            slide.querySelectorAll(REVEAL_SELECTOR).forEach((el) => {
+                this._cancelReveal(el);
+                this._clearHiddenStyle(el);
+            });
+            slide.querySelectorAll('.step').forEach((el) => {
+                el.classList.remove('step-shown');
+                this._cancelReveal(el);
+                this._applyHiddenStyle(el);
+            });
+        }
+
+        /* ---------- Navigation ----------
+           goTo scrolls to the target. Both forward-replay and backward-
+           rewind need to mutate the target BEFORE scrolling — while it's
+           still offscreen — so the viewer never sees the old state flash
+           into view. Resetting after the slide is in view causes a visible
+           "show then hide" blink; the IntersectionObserver fires too late
+           (80% threshold) to catch it. */
+        goTo(index) {
+            const clamped = Math.max(0, Math.min(this.slides.length - 1, index));
+            if (clamped === this.currentSlide) return;
+
+            const target = this.slides[clamped];
+            const goingForward = clamped > this.currentSlide;
+
+            if (target.classList.contains('visible')) {
+                if (goingForward) {
+                    // Forward replay: full reset so the observer can play reveals fresh.
+                    target.classList.remove('visible');
+                    this._resetSlideReveals(target);
+                } else {
+                    // Backward rewind: hide any shown steps so the slide
+                    // scrolls back in at the start of its stepped content.
+                    this._rewindSlide(target);
+                }
+            }
+
+            this._scrollToSlide(clamped, 'smooth');
+        }
+
+        _scrollToSlide(index, behavior) {
+            this.viewports[index]?.scrollIntoView({ behavior, block: 'start' });
+        }
+
+        _slideIndexFromHash(hash) {
+            if (!hash) return -1;
+            return this.slides.findIndex((s) => '#' + s.id === hash);
+        }
+
+        _syncHash() {
+            const slide = this.slides[this.currentSlide];
+            if (!slide || !slide.id) return;
+            const newHash = '#' + slide.id;
+            if (location.hash !== newHash) {
+                // replaceState — keeps the URL in sync without polluting history,
+                // so the browser back button exits the deck instead of stepping through slides.
+                try {
+                    history.replaceState(null, '', newHash);
+                } catch {
+                    // Sandboxed iframes (opaque origin, about:srcdoc) reject URL
+                    // mutation with a SecurityError. Hash sync is a nicety — an
+                    // unguarded throw here kills the observer callback before it
+                    // marks the slide visible and plays its reveals.
+                }
+            }
+        }
+
+        _setupHashNav() {
+            // React to external hash changes (anchor link clicks, back/forward if user uses pushState manually)
+            window.addEventListener('hashchange', () => {
+                const idx = this._slideIndexFromHash(location.hash);
+                if (idx >= 0 && idx !== this.currentSlide) this.goTo(idx);
+            });
+        }
+
+        /* ---------- Custom cursor ----------
+           Accent disc that follows the pointer, hidden after idle. */
+        _setupCursor() {
+            if (!matchMedia('(hover: hover)').matches) return;
+
+            const cursor = document.createElement('div');
+            cursor.className = 'chassis-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(cursor);
+            document.body.classList.add('chassis-cursor-active');
+
+            const half = 16;  // matches width/height / 2 in CSS
+            const IDLE_MS = 2500;
+            let idleTimer = null;
+
+            const show = () => {
+                cursor.classList.add('visible');
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(() => {
+                    cursor.classList.remove('visible');
+                }, IDLE_MS);
+            };
+            const hide = () => {
+                clearTimeout(idleTimer);
+                cursor.classList.remove('visible');
+            };
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.transform = `translate3d(${e.clientX - half}px, ${e.clientY - half}px, 0)`;
+                show();
+            });
+            document.addEventListener('mouseleave', hide);
+            document.addEventListener('mouseenter', show);
+        }
+
+        /* ---------- Fullscreen ---------- */
+        toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.();
+            }
+        }
+
+        next() { this.goTo(this.currentSlide + 1); }
+        prev() { this.goTo(this.currentSlide - 1); }
+        first() { this.goTo(0); }
+        last() { this.goTo(this.slides.length - 1); }
+
+        /* ---------- Step-aware advance / retreat ----------
+           advance() reveals the next .step on the current slide (if any),
+           otherwise advances to the next slide. retreat() hides the last
+           revealed step, otherwise goes back to the previous slide. */
+        advance() {
+            const current = this.slides[this.currentSlide];
+            const nextStep = current?.querySelector('.step:not(.step-shown)');
+            if (nextStep) {
+                nextStep.classList.add('step-shown');
+                // No stagger on click-reveal — the user's gesture is the trigger.
+                this._playReveal(nextStep, 0);
+                return;
+            }
+            this.next();
+        }
+        retreat() {
+            const current = this.slides[this.currentSlide];
+            const shown = current?.querySelectorAll('.step.step-shown');
+            if (shown && shown.length > 0) {
+                const last = shown[shown.length - 1];
+                last.classList.remove('step-shown');
+                this._cancelReveal(last);
+                this._applyHiddenStyle(last);
+                return;
+            }
+            this.prev();
+        }
+
+        /* ---------- Intersection observer ----------
+           Fire late (>= 80% in view) so reveals play on a settled slide.
+           This is the single source of truth for active-slide state.
+
+           Forward:  add .visible, play reveals. (goTo() has already reset
+                     the target to pre-reveal state if this is a re-visit,
+                     so the animation is fresh either way.)
+           Backward: add .visible, rewind to the start of the stepped
+                     content — reveals are shown instantly (no replay) and
+                     every step is hidden again so the viewer can step
+                     through it fresh. */
+        _setupIntersectionObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const idx = this.viewports.indexOf(entry.target);
+                    if (idx < 0) return;
+                    const slide = this.slides[idx];
+
+                    if (idx === this.currentSlide) {
+                        // Same-slide re-fire (initial load, resize, fullscreen).
+                        if (!slide.classList.contains('visible')) {
+                            slide.classList.add('visible');
+                        }
+                        // Idempotent: only plays if not already marked played.
+                        this._playSlideReveals(slide);
+                        return;
+                    }
+
+                    const goingForward = idx > this.currentSlide;
+                    this.currentSlide = idx;
+                    this._updateNavDots();
+                    this._syncHash();
+
+                    slide.classList.add('visible');
+                    if (goingForward) {
+                        this._playSlideReveals(slide);
+                    } else {
+                        this._rewindSlide(slide);
+                    }
+                });
+            }, { threshold: 0.8 });
+
+            this.viewports.forEach((viewport) => observer.observe(viewport));
+        }
+
+        /* ---------- Keyboard ---------- */
+        _setupKeyboardNav() {
+            document.addEventListener('keydown', (e) => {
+                // Skip when user is editing text
+                if (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+
+                switch (e.key) {
+                    // Step-aware: consume steps first, then advance slides
+                    case 'ArrowDown':
+                    case 'ArrowRight':
+                    case ' ':
+                        e.preventDefault(); this.advance(); break;
+                    case 'ArrowUp':
+                    case 'ArrowLeft':
+                        e.preventDefault(); this.retreat(); break;
+                    // Slide-level: always skip past steps
+                    case 'PageDown':
+                        e.preventDefault(); this.next(); break;
+                    case 'PageUp':
+                        e.preventDefault(); this.prev(); break;
+                    case 'Home':
+                        e.preventDefault(); this.first(); break;
+                    case 'End':
+                        e.preventDefault(); this.last(); break;
+                    case 'f':
+                    case 'F':
+                        e.preventDefault(); this.toggleFullscreen(); break;
+                    case 'r':
+                    case 'R':
+                        e.preventDefault(); this.first(); break;
+                }
+            });
+        }
+
+        /* ---------- Wheel / trackpad ----------
+           ALWAYS preventDefault — letting any native wheel scroll through
+           races against scrollIntoView + mandatory snap, and blocks macOS
+           two-finger horizontal swipes from triggering browser back/forward.
+           Whichever axis has the larger magnitude wins, so vertical scroll
+           and horizontal trackpad swipes both drive advance/retreat. Lock
+           briefly after a gesture so trackpad inertia (continuous small
+           deltas) can't spam next(). */
+        _setupWheelNav() {
+            let locked = false;
+            window.addEventListener('wheel', (e) => {
+                if (e.ctrlKey) return;                // preserve browser pinch-zoom (ctrl+wheel)
+                e.preventDefault();                   // block native scroll + horizontal back-swipe
+                if (locked) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (Math.abs(delta) < 20) return;     // ignore tiny flicks
+                locked = true;
+                if (delta > 0) this.advance(); else this.retreat();
+                setTimeout(() => { locked = false; }, 500);
+            }, { passive: false });
+        }
+
+        /* ---------- Touch / swipe ----------
+           Horizontal swipes advance / retreat slides; left = next, right =
+           prev (matches stories / carousel conventions). Dominantly
+           vertical swipes fall through to native scroll-snap so the
+           existing top/bottom behavior keeps working. A time budget
+           rejects slow pans that were really aborted scrolls. */
+        _setupTouchNav() {
+            const MIN_DISTANCE = 50;     // px — below this is a tap or jitter
+            const MAX_TIME = 600;        // ms — slower than this is a pan, not a swipe
+            const DOMINANCE = 1.2;       // horizontal must beat vertical by this factor
+
+            let startX = 0, startY = 0, startTime = 0;
+            let tracking = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('artifact-editor-editing')) { tracking = false; return; }
+                if (e.touches.length !== 1) { tracking = false; return; }
+                const t = e.touches[0];
+                startX = t.clientX;
+                startY = t.clientY;
+                startTime = performance.now();
+                tracking = true;
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const ax = Math.abs(dx), ay = Math.abs(dy);
+                if (ax < MIN_DISTANCE) return;
+                if (ax < ay * DOMINANCE) return;
+                if (performance.now() - startTime > MAX_TIME) return;
+                if (dx < 0) this.advance(); else this.retreat();
+            }, { passive: true });
+
+            window.addEventListener('touchcancel', () => { tracking = false; }, { passive: true });
+        }
+
+        /* ---------- Canvas scaling ----------
+           Each scaler holds a fixed 1920×1080 slide. Compute the
+           scale factor that fits it inside the viewport and apply via
+           CSS custom property. Runs on init, resize, and fullscreen. */
+        _setupCanvasScale() {
+            const CANVAS_W = 1920;
+            const CANVAS_H = 1080;
+            const scales = this.scales;
+
+            const update = () => {
+                const scale = Math.min(
+                    window.innerWidth / CANVAS_W,
+                    window.innerHeight / CANVAS_H
+                );
+                scales.forEach((el) => {
+                    el?.style.setProperty('--slide-scale', scale);
+                });
+            };
+
+            update();
+            window.addEventListener('resize', update);
+            document.addEventListener('fullscreenchange', () => {
+                requestAnimationFrame(update);
+            });
+        }
+
+        /* ---------- Viewport sync ----------
+           Resize / fullscreenchange → realign current slide. Each slide is
+           100vh, so a viewport height change leaves the existing scroll
+           position out of alignment with the slide top; scroll-snap doesn't
+           re-snap on its own. */
+        _setupViewportSync() {
+            const realign = () => {
+                requestAnimationFrame(() => {
+                    this._scrollToSlide(this.currentSlide, 'auto');
+                });
+            };
+            window.addEventListener('resize', realign);
+            document.addEventListener('fullscreenchange', realign);
+        }
+
+        /* ---------- Nav dots ---------- */
+        _buildNavDots() {
+            // Clear first — prevents duplicates when DOM is re-serialized/re-opened
+            this.navDotsContainer.innerHTML = '';
+            this.slides.forEach((slide, idx) => {
+                const dot = document.createElement('button');
+                dot.setAttribute('aria-label', `Go to slide ${idx + 1}`);
+                if (idx === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => this.goTo(idx));
+                this.navDotsContainer.appendChild(dot);
+            });
+        }
+
+        _updateNavDots() {
+            const dots = this.navDotsContainer.querySelectorAll('button');
+            dots.forEach((dot, idx) => {
+                dot.classList.toggle('active', idx === this.currentSlide);
+            });
+        }
+    }
+
+    /* ---------- Auto-init ---------- */
+    function init() {
+        // Each slide canvas is its own editable host for the inline editor.
+        document.querySelectorAll('.slide').forEach(function (el) {
+            el.classList.add('artifact-editable');
+        });
+        window.slides = new SlidePresentation();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+
+</script>
+<!-- /skill:chassis -->
+<style>
+  :root {
+    /* Paleta do Serverless Selfie SBG (mesma da moldura) */
+    --paper:   #F6F5FB;
+    --ink:     #1A0F3D;
+    --ink-2:   #26195A;
+    --orange:  #F59D01;
+    --purple:  #655CC6;
+    --blue:    #5BBEED;
+    --green:   #A4DF64;
+    --sand:    #7C74A6;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --accent:     var(--orange);
+    --muted-foreground: color-mix(in srgb, var(--ink) 62%, transparent);
+    --border:     color-mix(in srgb, var(--ink) 13%, transparent);
+
+    --font-display: 'Sora', sans-serif;
+    --font-body:    'Manrope', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+    --nav-dot-color: color-mix(in srgb, var(--purple) 60%, transparent);
+    --nav-dot-active-color: var(--orange);
+  }
+
+  body { background: var(--ink); }
+
+  .slide {
+    background: var(--paper); color: var(--ink); font-family: var(--font-body);
+    padding: 84px 96px 104px;
+    display: flex; flex-direction: column; justify-content: center; gap: 0; overflow: hidden;
+  }
+  .slide::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(1100px 700px at 100% 0%, color-mix(in srgb, var(--purple) 12%, transparent), transparent 66%),
+      radial-gradient(900px 620px at 0% 100%, color-mix(in srgb, var(--blue) 10%, transparent), transparent 66%);
+  }
+  .slide > * { position: relative; z-index: 1; }
+  .slide::after { /* faixa SBG */
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; z-index: 2;
+    background: linear-gradient(90deg, var(--purple) 0 25%, var(--blue) 25% 50%, var(--green) 50% 75%, var(--orange) 75%);
+  }
+
+  .dk { background: var(--ink); color: var(--paper); }
+  .dk::before {
+    background:
+      radial-gradient(1150px 720px at 6% 100%, color-mix(in srgb, var(--purple) 42%, transparent), transparent 66%),
+      radial-gradient(900px 620px at 96% 4%, color-mix(in srgb, var(--blue) 18%, transparent), transparent 66%);
+  }
+  .dk h1, .dk h2, .dk h3, .dk strong { color: var(--paper); }
+  .dk p { color: color-mix(in srgb, var(--paper) 72%, transparent); }
+  .dk .eyebrow { color: color-mix(in srgb, var(--paper) 62%, transparent); }
+  .dk .card { background: var(--ink-2); border-color: color-mix(in srgb, var(--paper) 14%, transparent); }
+  .dk .card p { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+  .dk .chip { background: var(--ink-2); border-color: color-mix(in srgb, var(--paper) 16%, transparent); color: color-mix(in srgb, var(--paper) 86%, transparent); }
+  .dk .note, .dk .src { color: color-mix(in srgb, var(--paper) 42%, transparent); }
+
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.032em; margin: 0; color: var(--ink); }
+  h1 { font-size: 116px; line-height: 1.0; font-weight: 800; }
+  h2 { font-size: 72px; line-height: 1.05; }
+  h3 { font-size: 36px; line-height: 1.15; }
+  p  { font-size: 34px; line-height: 1.42; margin: 0; color: var(--muted-foreground); max-width: 1200px; }
+  em { font-style: normal; color: var(--orange); }
+  .dk em { color: var(--orange); }
+  strong { font-weight: 700; color: var(--ink); }
+  code, .mono { font-family: var(--font-mono); }
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 22px; font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--sand); display: block; margin-bottom: 22px;
+  }
+  .eyebrow .sl { color: var(--orange); }
+  .note {
+    position: absolute; bottom: 46px; left: 96px; z-index: 2;
+    font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.06em;
+    color: color-mix(in srgb, var(--ink) 45%, transparent);
+  }
+  .src { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.04em; color: color-mix(in srgb, var(--ink) 48%, transparent); margin-top: 32px; }
+  .kick { font-family: var(--font-display); font-weight: 600; font-size: 46px; color: var(--orange); max-width: 1500px; line-height: 1.2; }
+
+  /* ---------- capa ---------- */
+  .cover { justify-content: space-between; padding-bottom: 96px; }
+  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cover .big { display: block; font-family: var(--font-display); font-weight: 800; font-size: 150px; line-height: 0.95; letter-spacing: -0.045em; color: var(--paper); max-width: 1300px; }
+  .event { text-align: right; font-family: var(--font-mono); }
+  .event b { display: block; font-size: 25px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--paper); }
+  .event span { display: block; font-size: 20px; letter-spacing: 0.14em; color: color-mix(in srgb, var(--paper) 55%, transparent); margin-top: 8px; }
+  .tag { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.18em; text-transform: uppercase; padding: 11px 22px; border: 1px solid color-mix(in srgb, var(--orange) 60%, transparent); border-radius: 999px; color: var(--orange); }
+  .speaker { font-family: var(--font-display); font-size: 38px; font-weight: 700; color: var(--paper); }
+  .speaker span { display: block; font-family: var(--font-mono); font-size: 19px; font-weight: 400; letter-spacing: 0.13em; text-transform: uppercase; color: var(--orange); margin-top: 12px; }
+  .icon-cloud { position: absolute; right: 110px; top: 50%; transform: translateY(-46%); z-index: 0; display: grid; grid-template-columns: repeat(3, 150px); gap: 44px; }
+  .icon-cloud img { width: 150px; height: 150px; border-radius: 22px; box-shadow: 0 24px 60px -20px rgba(0,0,0,.6); animation: bob 6s ease-in-out infinite; }
+  .icon-cloud img:nth-child(2n) { animation-delay: -3s; }
+  .icon-cloud img:nth-child(3n) { animation-delay: -1.5s; }
+  @keyframes bob { 50% { transform: translateY(-14px); } }
+  .ico { width: 72px; height: 72px; border-radius: 12px; display: block; }
+  .ico-row { display: flex; gap: 14px; }
+  .ico-lg { width: 120px; height: 120px; border-radius: 18px; display: block; margin-bottom: 28px; }
+
+  /* ---------- statement ---------- */
+  .st { align-items: flex-start; }
+  .st h1 { font-size: 136px; max-width: 1660px; }
+
+  /* ---------- fluxo em chips ---------- */
+  .path { display: flex; align-items: center; gap: 28px; margin-top: 64px; }
+  .path .chip { font-size: 44px; padding: 26px 46px; font-family: var(--font-display); font-weight: 700; }
+  .path b { font-family: var(--font-mono); font-size: 54px; color: var(--orange); }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 36px; }
+  .chip { font-family: var(--font-mono); font-size: 24px; padding: 12px 22px; border-radius: 999px; background: #fff; border: 1px solid var(--border); }
+  .chip.hi { background: var(--orange); border-color: var(--orange); color: #1A0F3D; font-weight: 700; }
+  .qs { display: flex; gap: 22px; margin-top: 64px; }
+  .qs span { font-family: var(--font-display); font-weight: 600; font-size: 40px; color: var(--blue); }
+
+  /* ---------- cards ---------- */
+  .cards { display: grid; gap: 22px; margin-top: 52px; }
+  .c4 { grid-template-columns: repeat(4, 1fr); }
+  .c3 { grid-template-columns: repeat(3, 1fr); }
+  .c2 { grid-template-columns: repeat(2, 1fr); }
+  .card { background: #fff; border-radius: 18px; padding: 34px 30px; border: 1px solid var(--border); border-top: 5px solid var(--purple); display: flex; flex-direction: column; gap: 12px; }
+  .card .lbl { font-family: var(--font-mono); font-size: 18px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--purple); }
+  .card h3 { font-size: 40px; }
+  .card p { font-size: 26px; line-height: 1.38; max-width: none; }
+  .card .muted { color: color-mix(in srgb, var(--ink) 45%, transparent); }
+  .dk .card .muted { color: color-mix(in srgb, var(--paper) 45%, transparent); }
+  .card.o { border-top-color: var(--orange); } .card.o .lbl { color: var(--orange); }
+  .card.b { border-top-color: var(--blue); }   .card.b .lbl { color: var(--blue); }
+  .card.g { border-top-color: var(--green); }  .card.g .lbl { color: #5f9a22; }
+  .dk .card.g .lbl { color: var(--green); }
+  .card .glyph { font-family: var(--font-mono); font-size: 64px; line-height: 1; color: var(--orange); }
+
+  /* ---------- matriz de responsabilidade ---------- */
+  .matrix { width: 100%; border-collapse: separate; border-spacing: 10px 10px; margin-top: 36px; font-size: 26px; }
+  .matrix th { font-family: var(--font-mono); font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sand); text-align: left; font-weight: 500; padding: 0 18px; }
+  .matrix td { padding: 16px 22px; border-radius: 12px; font-weight: 600; }
+  .matrix td:first-child { color: var(--ink); background: transparent; padding-left: 0; font-weight: 700; }
+  .matrix .you  { background: color-mix(in srgb, var(--orange) 22%, #fff); color: #7a4a00; }
+  .matrix .aws  { background: color-mix(in srgb, var(--purple) 14%, #fff); color: var(--purple); }
+  .legend { display: flex; gap: 36px; margin-top: 18px; font-family: var(--font-mono); font-size: 20px; color: var(--sand); }
+  .legend i { display: inline-block; width: 18px; height: 18px; border-radius: 5px; vertical-align: -2px; margin-right: 10px; }
+
+  /* ---------- escala ---------- */
+  .scale { display: flex; align-items: baseline; gap: 40px; margin-top: 40px; font-family: var(--font-display); font-weight: 800; font-size: 210px; line-height: 1; color: var(--purple); letter-spacing: -0.05em; }
+  .scale b { font-family: var(--font-mono); font-size: 90px; color: var(--orange); font-weight: 500; }
+
+  /* ---------- código ---------- */
+  .split { display: grid; gap: 80px; align-items: center; }
+  .split.half { grid-template-columns: 1fr 1fr; }
+  .split.p1 { grid-template-columns: 500px 1fr; }
+  .code { background: var(--ink); border-radius: 20px; padding: 40px 44px; color: #E9E6F8; font-family: var(--font-mono); font-size: 27px; line-height: 1.6; white-space: pre; box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--ink) 60%, transparent); }
+  .code .c { color: #8C84BE; }
+  .code .kw { color: var(--blue); }
+  .code .s { color: var(--green); }
+  .code .f { color: var(--orange); }
+  .code-cap { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sand); margin-top: 18px; }
+
+  /* ---------- registro DynamoDB ---------- */
+  .record { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 36px 44px; }
+  .record .ttl { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--purple); margin-bottom: 20px; }
+  .record dl { display: grid; grid-template-columns: 220px 1fr; row-gap: 16px; font-family: var(--font-mono); font-size: 27px; }
+  .record dt { color: var(--sand); }
+  .record dd { color: var(--ink); }
+  .record dd.ok { color: #3f7d0c; font-weight: 700; }
+
+  /* ---------- duplicata ---------- */
+  .dupe { display: flex; align-items: center; gap: 48px; margin-top: 60px; }
+  .dupe .evs { display: flex; flex-direction: column; gap: 18px; }
+  .dupe .evs span, .dupe .one { font-family: var(--font-mono); font-size: 34px; padding: 22px 36px; border-radius: 16px; border: 2px dashed color-mix(in srgb, var(--paper) 40%, transparent); color: var(--paper); }
+  .dupe b { font-family: var(--font-mono); font-size: 70px; color: var(--orange); }
+  .dupe .one { border: 3px solid var(--orange); font-weight: 700; font-size: 44px; }
+
+  /* ---------- diagramas (draw.io → SVG) ---------- */
+  .diagram { width: 100%; height: 640px; margin-top: 40px; border-radius: 20px; background: #fff; border: 1px solid var(--border); }
+  .diagram img { width: 100%; height: 100%; object-fit: contain; padding: 28px; max-height: none; }
+  .diagram.empty { border: 2px dashed color-mix(in srgb, var(--purple) 45%, transparent); background: color-mix(in srgb, var(--purple) 4%, #fff); }
+  .slot { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .slot img { display: block; }
+  .slot .hint { display: none; font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.06em; text-align: center; color: var(--sand); line-height: 1.7; padding: 24px; }
+  .slot.empty .hint { display: block; }
+  .slot .hint b { color: var(--purple); letter-spacing: 0.14em; }
+  .dk .diagram { background: #fff; }
+
+  /* ---------- quem sou ---------- */
+  .photo { width: 500px; height: 640px; border-radius: 20px; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; max-height: none; }
+  .rows { display: flex; flex-direction: column; gap: 24px; }
+  .row .k, .k { font-family: var(--font-mono); font-size: 19px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--orange); display: block; margin-bottom: 6px; }
+  .row .v { font-size: 34px; font-weight: 600; color: var(--ink); }
+  .certs { display: grid; grid-template-columns: repeat(6, 92px); gap: 12px 14px; margin-top: 8px; }
+  .certs img { width: 92px; height: 92px; object-fit: contain; }
+
+  /* ---------- selfie ---------- */
+  .phone { width: 430px; height: 764px; border-radius: 44px; border: 12px solid var(--ink); overflow: hidden; box-shadow: 0 40px 90px -30px color-mix(in srgb, var(--ink) 70%, transparent); transform: rotate(-3deg); }
+  .phone img { width: 100%; height: 100%; object-fit: cover; max-height: none; display: block; }
+  .square { width: 470px; height: 470px; border-radius: 22px; overflow: hidden; transform: rotate(4deg); box-shadow: 0 40px 90px -30px color-mix(in srgb, var(--ink) 70%, transparent); }
+  .square img { width: 100%; height: 100%; max-height: none; display: block; }
+  .shots { display: flex; align-items: center; gap: 40px; justify-content: center; }
+  .lead { font-family: var(--font-display); font-weight: 600; font-size: 44px; line-height: 1.3; color: var(--ink); margin-top: 40px; }
+  .dk .lead { color: var(--paper); }
+
+  /* ---------- custo ---------- */
+  .big-num { font-family: var(--font-display); font-weight: 800; font-size: 96px; line-height: 0.95; letter-spacing: -0.05em; color: var(--orange); }
+
+  /* ---------- recap ---------- */
+  .recap { display: flex; flex-direction: column; gap: 34px; margin-top: 56px; }
+  .recap li { display: grid; grid-template-columns: 980px 1fr; align-items: baseline; gap: 40px; }
+  .recap .q { font-family: var(--font-display); font-weight: 700; font-size: 50px; color: var(--paper); letter-spacing: -0.02em; }
+  .recap .a { font-family: var(--font-mono); font-size: 40px; color: var(--orange); }
+
+  /* ---------- QR ---------- */
+  .qrs { display: grid; grid-template-columns: repeat(4, 280px); gap: 60px; margin-top: 48px; }
+  .qr { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .qr .box { width: 280px; height: 280px; background: #fff; border-radius: 18px; }
+  .qr .box img { width: 100%; height: 100%; object-fit: contain; padding: 22px; max-height: none; }
+  .qr .cap { font-family: var(--font-mono); font-size: 22px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--paper); }
+  .qr .sub2 { font-size: 20px; color: color-mix(in srgb, var(--paper) 58%, transparent); margin-top: -10px; text-align: center; }
+  .qr-hero .box { width: 440px; height: 440px; }
+  .steps { display: flex; flex-direction: column; gap: 22px; margin-top: 52px; }
+  .steps p { font-family: var(--font-display); font-weight: 600; font-size: 44px; color: var(--paper); }
+  .steps p span { font-family: var(--font-mono); color: var(--orange); margin-right: 22px; font-size: 34px; }
+</style>
+
+<!-- 1 · CAPA -->
+<section class="slide dk cover">
+  <!-- roteiro 00:00–00:01 · Promessa: hoje vocês vão usar uma aplicação e descobrir o que acontece depois de apertar o botão. A lembrança é uma selfie com a moldura do grupo. Não falar horário de início. -->
+  <div class="icon-cloud reveal d3" aria-hidden="true"><img class="x" src="images/aws/lambda.svg" alt=""><img class="x" src="images/aws/api-gateway.svg" alt=""><img class="x" src="images/aws/s3.svg" alt=""><img class="x" src="images/aws/eventbridge.svg" alt=""><img class="x" src="images/aws/step-functions.svg" alt=""><img class="x" src="images/aws/dynamodb.svg" alt=""></div>
+  <div class="cover-top">
+    <span class="tag reveal d1">AWS · Serverless · Arquitetura</span>
+    <div class="event reveal d1"><b>Student Builder Group IMT</b><span>14 de novembro de 2026</span></div>
+  </div>
+  <span class="big reveal d2" style="max-width:1100px">O que é arquitetura <em>Serverless?</em></span>
+  <div class="speaker reveal d4">Vitor Soller<span>Cloud Architect Engineer · 12× AWS Certified</span></div>
+</section>
+
+<!-- 2 · QUEM SOU -->
+<section class="slide">
+  <!-- roteiro 00:01–00:03 · Formação Mauá '25, Cloud Architect Engineer, Dev Community, escalada. Não citar nome de empresa. As 12 certificações vêm do Credly (credly.com/users/vitor-guirao-soller). -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> quem tá falando</span>
+  <div class="split p1">
+    <div class="slot photo reveal-scale d2"><img src="images/vitor-speaker.jpg" alt="Vitor Soller"></div>
+    <div class="rows">
+      <h2 class="reveal d2">Vitor Soller</h2>
+      <div class="row reveal d3"><span class="k">hoje</span><span class="v">Cloud Architect Engineer</span></div>
+      <div class="row reveal d3"><span class="k">formação</span><span class="v">Eng. da Computação, Mauá '25</span></div>
+      <div class="row reveal d4"><span class="k">fora do trabalho</span><span class="v">Dev Community · escalada indoor</span></div>
+      <div class="reveal d5">
+        <span class="k">12 certificações AWS</span>
+        <div class="certs">
+          <img src="images/badges/01-clf.png" alt="AWS Certified Cloud Practitioner">
+          <img src="images/badges/02-aif.png" alt="AWS Certified AI Practitioner">
+          <img src="images/badges/03-aibs.png" alt="AWS Certified AI Business Strategist">
+          <img src="images/badges/04-saa.png" alt="AWS Certified Solutions Architect – Associate">
+          <img src="images/badges/05-dva.png" alt="AWS Certified Developer – Associate">
+          <img src="images/badges/06-soa.png" alt="AWS Certified CloudOps Engineer – Associate">
+          <img src="images/badges/07-mla.png" alt="AWS Certified Machine Learning Engineer – Associate">
+          <img src="images/badges/08-dea.png" alt="AWS Certified Data Engineer – Associate">
+          <img src="images/badges/09-sap.png" alt="AWS Certified Solutions Architect – Professional">
+          <img src="images/badges/10-aip.png" alt="AWS Certified Generative AI Developer – Professional">
+          <img src="images/badges/11-dop.png" alt="AWS Certified DevOps Engineer – Professional">
+          <img src="images/badges/12-scs.png" alt="AWS Certified Security – Specialty">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · GANCHO -->
+<section class="slide dk">
+  <!-- roteiro 00:03–00:05 · Perguntar quem já publicou um site ou usou uma API. Mostrar o resultado antes dos serviços. Ninguém precisa de conta AWS, cadastro ou login. Story é voluntário. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> daqui a pouco, cada um aqui sai com uma selfie</span>
+  <h2 class="reveal d2">Da foto ao resultado.<br>O que acontece <em>no meio?</em></h2>
+  <div class="path">
+    <span class="chip reveal d3">Enviar</span><b class="reveal d3">→</b>
+    <span class="chip reveal d4">Processar</span><b class="reveal d4">→</b>
+    <span class="chip reveal d5">Receber</span>
+  </div>
+  <div class="qs">
+    <span class="step">Onde roda?</span>
+    <span class="step">Onde guarda?</span>
+    <span class="step">E se falhar?</span>
+  </div>
+</section>
+
+<!-- 4 · REQUISIÇÃO (diagrama 01) -->
+<section class="slide">
+  <!-- roteiro 00:05–00:08 · Navegador → servidor → banco, numerar 1 requisição HTTP, 2 lógica, 3 leitura/escrita, 4 resposta. Sem ícones AWS. Servidor é um papel: quem atende pedidos. Credencial privilegiada nunca no cliente. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> antes da nuvem</span>
+  <h2 class="reveal d2">O clique não termina no botão.</h2>
+  <div class="slot diagram empty reveal d3" data-diagram="01-requisicao">
+    <img src="diagramas/01-requisicao.svg" alt="Navegador envia requisição ao servidor, que lê e escreve no banco e devolve a resposta" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 01 · draw.io</b><br>Navegador → Servidor → Banco<br>1 requisição · 2 lógica · 3 leitura/escrita · 4 resposta</div>
+  </div>
+</section>
+
+<!-- 5 · RESPONSABILIDADES -->
+<section class="slide">
+  <!-- roteiro 00:08–00:11 · A divisão varia por serviço. Região sem aula de todas as regiões. Segurança continua compartilhada: AWS cuida "da" nuvem, você cuida do que põe "na" nuvem. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> quem administra o quê?</span>
+  <h2 class="reveal d2">Na nuvem, as <em>responsabilidades</em> mudam.</h2>
+  <table class="matrix reveal d3">
+    <thead><tr><th></th><th>Servidor próprio</th><th>Máquina virtual</th><th>Serverless</th></tr></thead>
+    <tbody>
+      <tr><td>Prédio, energia, hardware</td><td class="you">você</td><td class="aws">provedor</td><td class="aws">provedor</td></tr>
+      <tr><td>Sistema operacional, patches</td><td class="you">você</td><td class="you">você</td><td class="aws">provedor</td></tr>
+      <tr><td>Runtime e escala</td><td class="you">você</td><td class="you">você</td><td class="aws">provedor</td></tr>
+      <tr><td>Código</td><td class="you">você</td><td class="you">você</td><td class="you">você</td></tr>
+      <tr><td>Dados e permissões</td><td class="you">você</td><td class="you">você</td><td class="you">você</td></tr>
+    </tbody>
+  </table>
+  <div class="legend reveal d5"><span><i style="background:color-mix(in srgb,#F59D01 30%,#fff)"></i>você administra</span><span><i style="background:color-mix(in srgb,#655CC6 22%,#fff)"></i>o provedor administra</span><span>simplificado · a divisão varia por serviço</span></div>
+</section>
+
+<!-- 6 · ESCALA -->
+<section class="slide">
+  <!-- roteiro 00:11–00:15 · Escalabilidade ≠ elasticidade. Concorrência = trabalho simultâneo, não cliques acumulados. Aproximação: concorrência ≈ requisições/s × duração média. Dez pessoas não provam escala de produção. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> ilustração conceitual, não medição</span>
+  <h2 class="reveal d2">Mais demanda.<br>Mais trabalho <em>ao mesmo tempo.</em></h2>
+  <div class="scale reveal d3">1 <b>→</b> 10 <b>→</b> 100</div>
+  <div class="cards c2">
+    <div class="card reveal d4"><span class="lbl">escalabilidade</span><h3>Aguentar crescer.</h3><p>O sistema suporta mais carga sem ser redesenhado.</p></div>
+    <div class="card o reveal d5"><span class="lbl">elasticidade</span><h3>Crescer e encolher sozinho.</h3><p>Os recursos acompanham a demanda, nos dois sentidos.</p></div>
+  </div>
+</section>
+
+<!-- 7 · STATEMENT -->
+<section class="slide dk st">
+  <!-- roteiro 00:15–00:16:30 · Infra gerenciada pelo provedor, mas código, dados e permissões continuam sendo decisão nossa. Nem todo serviço tem custo ocioso zero. Cold start existe. -->
+  <h1 class="reveal-scale d1">Serverless não é<br><em>sem servidor.</em></h1>
+  <p class="kick step" style="margin-top: 54px;">É menos infraestrutura pra administrar.<br>Não menos decisões pra tomar.</p>
+</section>
+
+<!-- 8 · MAPA DE SERVIÇOS -->
+<section class="slide">
+  <!-- roteiro 00:16:30–00:18 · Seis responsabilidades, não uma aula de cada produto. Destaque nos usados na demo. Fargate mostra que serverless vai além de funções. Nem todos escalam a zero. Fonte: docs.aws.amazon.com -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> laranja = usado na demo de hoje</span>
+  <h2 class="reveal d2">Serverless é mais que <em>Lambda.</em></h2>
+  <div class="cards c3">
+    <div class="card o reveal d3"><div class="ico-row"><img class="ico" src="images/aws/lambda.svg" alt=""><img class="ico" src="images/aws/fargate.svg" alt=""></div><span class="lbl">computação</span><h3>Lambda</h3><p class="muted">Fargate</p></div>
+    <div class="card o reveal d3"><div class="ico-row"><img class="ico" src="images/aws/api-gateway.svg" alt=""><img class="ico" src="images/aws/appsync.svg" alt=""></div><span class="lbl">APIs</span><h3>API Gateway</h3><p class="muted">AppSync</p></div>
+    <div class="card o reveal d4"><div class="ico-row"><img class="ico" src="images/aws/s3.svg" alt=""><img class="ico" src="images/aws/dynamodb.svg" alt=""></div><span class="lbl">dados</span><h3>S3 · DynamoDB</h3><p class="muted">objetos e estado</p></div>
+    <div class="card reveal d4"><div class="ico-row"><img class="ico" src="images/aws/sqs.svg" alt=""><img class="ico" src="images/aws/sns.svg" alt=""></div><span class="lbl">mensagens</span><h3>SQS · SNS</h3><p class="muted">filas e notificações</p></div>
+    <div class="card o reveal d5"><div class="ico-row"><img class="ico" src="images/aws/eventbridge.svg" alt=""></div><span class="lbl">eventos</span><h3>EventBridge</h3><p class="muted">roteamento</p></div>
+    <div class="card o reveal d5"><div class="ico-row"><img class="ico" src="images/aws/step-functions.svg" alt=""></div><span class="lbl">orquestração</span><h3>Step Functions</h3><p class="muted">workflows</p></div>
+  </div>
+</section>
+
+<!-- 9 · LAMBDA -->
+<section class="slide">
+  <!-- roteiro 00:18–00:21 · Handler recebe evento. O evento carrega referência (bucket/chave), não a foto. Estado durável fica fora da função: não confiar na memória entre invocações. -->
+  <div class="split half">
+    <div>
+      <img class="ico-lg reveal d1" src="images/aws/lambda.svg" alt="">
+      <span class="eyebrow reveal d1"><span class="sl">//</span> AWS Lambda</span>
+      <h2 class="reveal d2">Algo acontece.<br><em>Seu código executa.</em></h2>
+      <p class="reveal d3" style="margin-top: 40px;">Evento → função → efeito.<br>Sem servidor ligado esperando.</p>
+    </div>
+    <div class="reveal-right d3">
+      <div class="code"><span class="c">// simplificado do repositório</span>
+<span class="kw">export async function</span> <span class="f">render</span>({ jobId, formato }) {
+  <span class="c">// o evento traz a referência,</span>
+  <span class="c">// não a foto inteira</span>
+  <span class="kw">const</span> foto = <span class="kw">await</span> s3.get(<span class="s">`entrada/${jobId}`</span>);
+  <span class="kw">const</span> arte = <span class="kw">await</span> <span class="f">aplicarMoldura</span>(foto, formato);
+  <span class="kw">await</span> s3.put(<span class="s">`saida/${jobId}/${formato}`</span>, arte);
+  <span class="kw">return</span> { jobId, formato };
+}</div>
+      <div class="code-cap">serverless-selfie-sbg · services/pipeline.ts</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 · DEV COMMUNITY (diagrama 03) -->
+<section class="slide">
+  <!-- roteiro 00:21–00:25 · Case pessoal. Navegador autentica no Cognito e recebe token; chamada com token vai ao API Gateway; Lambda executa e acessa DynamoDB. Cognito ao lado, não no caminho de toda chamada. Não faz parte da demo da selfie. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> um caso real meu</span>
+  <h2 class="reveal d2">Uma base da <em>Dev Community.</em></h2>
+  <div class="slot diagram empty reveal d3" data-diagram="03-dev-community">
+    <img src="diagramas/03-dev-community.svg" alt="Navegador autentica no Cognito, chama o API Gateway com token, Lambda executa e acessa o DynamoDB" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 03 · draw.io</b><br>Cognito (ao lado) · Navegador → API Gateway → Lambda → DynamoDB</div>
+  </div>
+</section>
+
+<!-- 11 · ESTADO -->
+<section class="slide">
+  <!-- roteiro 00:25–00:28 · Começar pelos padrões de acesso: buscar trabalho por ID, listar os da sessão. Foto no S3; dono e estado no DynamoDB. Identificador não é credencial. Atualização condicional importa. NoSQL não substitui SQL em tudo. -->
+  <div class="split half">
+    <div>
+      <div class="ico-row reveal d1" style="margin-bottom:28px"><img class="ico-lg" src="images/aws/s3.svg" alt=""><img class="ico-lg" src="images/aws/dynamodb.svg" alt=""></div>
+      <span class="eyebrow reveal d1"><span class="sl">//</span> S3 + DynamoDB</span>
+      <h2 class="reveal d2">A selfie no S3.<br><em>O estado no banco.</em></h2>
+      <p class="lead reveal d3">"Qual é o status<br>do meu trabalho?"</p>
+    </div>
+    <div class="record reveal-right d3">
+      <div class="ttl">DynamoDB · exemplo sintético</div>
+      <dl>
+        <dt>pk</dt><dd>JOB#9f3c…e1</dd>
+        <dt>sessionId</dt><dd>s_4a7d…</dd>
+        <dt>status</dt><dd class="ok">COMPLETED</dd>
+        <dt>saídas</dt><dd>story · square</dd>
+        <dt>expiresAt</dt><dd>+24 h (TTL)</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- 12 · ASSÍNCRONO (diagrama 04) -->
+<section class="slide">
+  <!-- roteiro 00:28–00:32 · Linha síncrona espera tudo; assíncrona devolve ID + autorização de upload na hora. Upload concluído ≠ imagem pronta. HTTP pode iniciar processo assíncrono. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> síncrono × assíncrono</span>
+  <h2 class="reveal d2">Recebido não significa <em>concluído.</em></h2>
+  <div class="slot diagram empty reveal d3" data-diagram="04-sincrono-assincrono">
+    <img src="diagramas/04-sincrono-assincrono.svg" alt="Duas linhas do tempo: pedir e esperar, contra receber e acompanhar" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 04 · draw.io</b><br>Pedir e esperar  ×  receber um ID e acompanhar</div>
+  </div>
+</section>
+
+<!-- 13 · EVENTO (diagrama 05) -->
+<section class="slide">
+  <!-- roteiro 00:32–00:35 · Navegador envia bytes direto ao S3; S3 emite evento; EventBridge leva ao Step Functions. Seta de arquivo ≠ seta de evento. Alternativa simples: S3 → Lambda direto. EventBridge se justifica pelo roteamento. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> arquitetura orientada a eventos</span>
+  <h2 class="reveal d2">Um arquivo chegou. <em>Isso é um evento.</em></h2>
+  <div class="slot diagram empty reveal d3" data-diagram="05-evento">
+    <img src="diagramas/05-evento.svg" alt="Navegador envia a foto ao S3, que emite um evento; o EventBridge encaminha ao Step Functions" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 05 · draw.io</b><br>Navegador ⇒ S3 → EventBridge → Step Functions<br>bytes no upload · referência no evento</div>
+  </div>
+</section>
+
+<!-- 14 · TRÊS PAPÉIS -->
+<section class="slide dk">
+  <!-- roteiro 00:35–00:38 · "Imagem enviada" é fato; "gere uma moldura" é pedido. Fila amortece picos, mas não entra no MVP só pra ter mais ícone. Event-driven não exige EventBridge. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> parecidos, mas não iguais</span>
+  <h2 class="reveal d2">Três serviços.<br><em>Três responsabilidades.</em></h2>
+  <div class="cards c3">
+    <div class="card reveal d3"><img class="ico" src="images/aws/eventbridge.svg" alt=""><h3>EventBridge</h3><p>Encaminha eventos pra quem se interessa.</p></div>
+    <div class="card reveal d4"><img class="ico" src="images/aws/sqs.svg" alt=""><h3>SQS</h3><p>Guarda trabalho na fila até alguém processar.</p></div>
+    <div class="card reveal d5"><img class="ico" src="images/aws/step-functions.svg" alt=""><h3>Step Functions</h3><p>Coordena as etapas, com retry e tratamento de erro.</p></div>
+  </div>
+</section>
+
+<!-- 15 · WORKFLOW (diagrama 06) -->
+<section class="slide">
+  <!-- roteiro 00:38–00:42 · claim (idempotência + lease) → validate → render story ‖ render square → concluir. Retry limitado pra falha transitória, Catch pra erro final. Duplicata não marca o original como falha. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> AWS Step Functions</span>
+  <h2 class="reveal d2">O processo também <em>é arquitetura.</em></h2>
+  <div class="slot diagram empty reveal d3" data-diagram="06-workflow">
+    <img src="diagramas/06-workflow.svg" alt="Workflow: reivindicar, validar, gerar story e quadrado em paralelo, concluir; com retry e catch" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 06 · draw.io</b><br>Reivindicar → Validar → (Story ‖ Quadrado) → Concluir<br>Retry · Catch → Falha</div>
+  </div>
+</section>
+
+<!-- 16 · IDEMPOTÊNCIA -->
+<section class="slide dk">
+  <!-- roteiro 00:42–00:45 · S3 entrega notificação pelo menos uma vez, sem garantia de ordem. Atualização condicional + lease recuperável. Buckets de entrada e saída separados evitam loop. Fonte: docs S3 event notifications. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> o S3 entrega eventos "pelo menos uma vez"</span>
+  <h2 class="reveal d2">Dois eventos.<br><em>Um efeito.</em></h2>
+  <div class="dupe">
+    <div class="evs reveal d3"><span>evento A</span><span>evento A</span></div>
+    <b class="reveal d4">→</b>
+    <div class="one reveal d5">1 selfie processada</div>
+  </div>
+  <p class="kick step" style="margin-top: 56px;">Idempotência: repetir sem duplicar o efeito.</p>
+</section>
+
+<!-- 17 · O APP -->
+<section class="slide">
+  <!-- roteiro 00:45–00:48 · Mostrar a saída real da moldura (imagem de exemplo). Story 1080×1920 e quadrado 1080×1080. Sem reconhecimento facial; não projetar selfie de ninguém sem consentimento. -->
+  <div class="split half">
+    <div>
+      <span class="eyebrow reveal d1"><span class="sl">//</span> o projeto de hoje</span>
+      <h2 class="reveal d2">Serverless<br><em>Selfie SBG.</em></h2>
+      <p class="lead reveal d3">Sem cadastro.<br>Sem login.<br>Sem conta AWS.</p>
+      <p class="src reveal d4">saída real do pipeline · Story 1080×1920 e quadrado 1080×1080</p>
+    </div>
+    <div class="shots">
+      <div class="phone reveal-scale d3"><img src="images/selfie-story-exemplo.jpg" alt="Story gerado com a moldura do Student Builder Group, com a foto do Vitor"></div>
+      <div class="square reveal-scale d5"><img src="images/selfie-square-exemplo.jpg" alt="Versão quadrada gerada com a moldura"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 · ARQUITETURA COMPLETA (diagrama 07) -->
+<section class="slide">
+  <!-- roteiro 00:48–00:51 · Três faixas: borda (CloudFront + S3 site), API (API Gateway, Lambda, DynamoDB, sessão anônima por cookie), pipeline (S3 entrada, EventBridge, Step Functions, Lambdas, S3 saída). CloudWatch transversal. Sem Cognito pra turma (Cognito só no painel do apresentador). Infra em CDK no repo. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> tudo junto</span>
+  <h2 class="reveal d2">A arquitetura <em>por trás da selfie.</em></h2>
+  <div class="slot diagram empty reveal d3" data-diagram="07-arquitetura-selfie" style="height: 700px;">
+    <img src="diagramas/07-arquitetura-selfie.svg" alt="Arquitetura completa do Serverless Selfie SBG" onerror="this.remove()">
+    <div class="hint"><b>DIAGRAMA 07 · draw.io</b><br>CloudFront · API Gateway · Lambda · DynamoDB · S3 · EventBridge · Step Functions · CloudWatch</div>
+  </div>
+</section>
+
+<!-- 19 · DEMO -->
+<section class="slide dk">
+  <!-- roteiro 00:51–01:05 · 0–3 min: abrir no celular do palestrante, gerar moldura. 3–6: seguir o jobId no S3, Step Functions e DynamoDB. 6–9 (opcional): lote sintético. 9–11 (opcional): demo de Retry. 11–14: dashboard CloudWatch. Não depurar mais de 2 min no palco. CONFIRMAR A URL APÓS O DEPLOY. -->
+  <div class="split half">
+    <div>
+      <h1 class="reveal d1">Agora,<br><em>é com vocês.</em></h1>
+      <div class="steps">
+        <p class="reveal d2"><span>01</span>Abra o site.</p>
+        <p class="reveal d3"><span>02</span>Gere sua moldura.</p>
+        <p class="reveal d4"><span>03</span>Baixe ou compartilhe.</p>
+      </div>
+    </div>
+    <div class="qr qr-hero reveal-scale d3">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&amp;data=https://serverless-selfie.vsoller.com.br" alt="QR code para o Serverless Selfie SBG"></div>
+      <span class="cap">serverless-selfie.vsoller.com.br</span>
+    </div>
+  </div>
+</section>
+
+<!-- 20 · OUTROS CASOS -->
+<section class="slide">
+  <!-- roteiro 01:05–01:09 · 2 min documentos (case anônimo: upload pré-assinado, S3, Lambda, Step Functions, DynamoDB; uso parcial em produção; sem nomes nem setor). 2 min Serverlesspresso (aws.amazon.com/blogs/compute/introducing-serverlesspresso-extensions · github.com/aws-samples/serverless-coffee). Não são arquiteturas idênticas. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> o mesmo padrão em outros lugares</span>
+  <h2 class="reveal d2">O mesmo padrão, <em>outros problemas.</em></h2>
+  <div class="cards c2">
+    <div class="card reveal d3"><span class="lbl">case anônimo</span><h3>Documentos</h3><p>Upload → processamento → resultado.<br>Uso parcial em produção.</p>
+      <div class="slot diagram empty" data-diagram="08a-documentos" style="height: 300px; margin-top: 14px;"><img src="diagramas/08a-documentos.svg" alt="Fluxo simplificado de ingestão de documentos" onerror="this.remove()"><div class="hint"><b>DIAGRAMA 08A</b><br>fluxo simplificado</div></div>
+    </div>
+    <div class="card o reveal d4"><span class="lbl">exemplo público AWS</span><h3>Serverlesspresso</h3><p>Pedido no celular → café pronto.<br>EventBridge + Step Functions.</p>
+      <div class="slot diagram empty" data-diagram="08b-serverlesspresso" style="height: 300px; margin-top: 14px;"><img src="diagramas/08b-serverlesspresso.svg" alt="Fluxo de pedidos do Serverlesspresso" onerror="this.remove()"><div class="hint"><b>DIAGRAMA 08B</b><br>pedido → eventos/workflow → preparo → pronto</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 21 · CUSTO -->
+<section class="slide">
+  <!-- roteiro 01:09–01:12 · Cobrança por chamada, execução, transição, armazenamento, transferência, logs. Uma selfie = várias operações; polling e retry também custam. Free Tier consultado em 10/11/2026: novos clientes elegíveis US$ 100 + até US$ 100 por atividades; Free Plan até 6 meses ou fim dos créditos. Contas antes de 15/07/2025 seguem o modelo antigo. Budget avisa, não bloqueia. Fonte: aws.amazon.com/blogs/aws/aws-free-tier-update-new-customers-can-get-started-and-explore-aws-with-up-to-200-in-credits/ -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> a parte que ninguém mostra</span>
+  <h2 class="reveal d2">Serverless não significa <em>grátis.</em></h2>
+  <div class="cards c3">
+    <div class="card reveal d3"><span class="lbl">consumo</span><h3>Cada etapa conta.</h3><p>Chamadas, execução, transições, dados, transferência e logs.</p></div>
+    <div class="card o reveal d4"><span class="lbl">novos clientes elegíveis</span><span class="big-num">até<br>US$ 200</span><p>em créditos. Free Plan dura até 6 meses ou até acabarem os créditos.</p></div>
+    <div class="card b reveal d5"><span class="lbl">proteção</span><h3>Limites. Alertas. Limpeza.</h3><p>Alerta de budget <strong>avisa</strong>, não bloqueia.</p></div>
+  </div>
+  <p class="src reveal d6">Free Tier consultado em 10/11/2026 · aws.amazon.com/free</p>
+</section>
+
+<!-- 22 · RECAP -->
+<section class="slide dk">
+  <!-- roteiro 01:12–01:14 · Recap em até 3 minutos. Fazer a pergunta, esperar a turma responder, só então avançar pra resposta. -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> se você lembrar de três coisas</span>
+  <ul class="recap">
+    <li><span class="q reveal d2">Onde fica a imagem?</span><span class="a step">S3</span></li>
+    <li><span class="q reveal d3">Quem inicia o processamento?</span><span class="a step">o evento</span></li>
+    <li><span class="q reveal d4">Onde fica o estado?</span><span class="a step">DynamoDB</span></li>
+  </ul>
+</section>
+
+<!-- 23 · PERGUNTAS + QR -->
+<section class="slide dk">
+  <!-- roteiro 01:15 em diante · Deixar esta tela durante as perguntas (até 15 min). -->
+  <span class="eyebrow reveal d1"><span class="sl">//</span> obrigado, SBG · aponta a câmera</span>
+  <h1 class="reveal d2">Perguntas?</h1>
+  <div class="qrs">
+    <div class="qr reveal d3">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://github.com/VgsStudio/serverless-selfie-sbg" alt="QR code para o repositório do projeto"></div>
+      <span class="cap">O projeto</span><span class="sub2">github.com/VgsStudio</span>
+    </div>
+    <div class="qr reveal d4">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://vsoller.com.br" alt="QR code para o portfólio"></div>
+      <span class="cap">Portfólio</span><span class="sub2">vsoller.com.br</span>
+    </div>
+    <div class="qr reveal d5">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://www.linkedin.com/in/vitor-soller/" alt="QR code para o LinkedIn"></div>
+      <span class="cap">LinkedIn</span><span class="sub2">in/vitor-soller</span>
+    </div>
+    <div class="qr reveal d6">
+      <div class="box slot"><img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&amp;data=https://www.instagram.com/awsstudentbuildergroupimt/" alt="QR code para o Instagram do AWS Student Builder Group IMT"></div>
+      <span class="cap">SBG IMT</span><span class="sub2">@awsstudentbuildergroupimt</span>
+    </div>
+  </div>
+  <span class="note">Vitor Soller · Cloud Architect Engineer · Student Builder Group IMT</span>
+</section>
+
+<div class="keyboard-hint">← → navegar · R início · F tela cheia</div>
+</body></html>
